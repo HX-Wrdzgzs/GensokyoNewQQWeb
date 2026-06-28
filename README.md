@@ -1,47 +1,43 @@
 # Gensokyo-NewQQWeb
 
-**Gensokyo-NewQQ 官方介绍与帮助文档网站**
+Gensokyo-NewQQ 官方介绍与帮助文档网站项目。
 
-本仓库是 [Gensokyo-NewQQ](https://github.com/Te-River/Gensokyo-NewQQ)（基于 Go 原生的高性能 OneBot V11 QQ 官方机器人网关）的配套官网与帮助文档项目。
+## 项目简介
 
-## 网站亮点
+本项目为 [Gensokyo-NewQQ](https://github.com/Te-River/Gensokyo-NewQQ) 机器人网关的配套文档与展示网站，基于 VitePress 静态站点生成器构建。
 
-- **VitePress 驱动**：使用极速的 VitePress 静态站点生成器构建，完美适配深浅色模式切换。
-- **Supabase 极简暗黑风**：遵循 Supabase 设计语言，选用翡翠绿（Emerald Green）作为主题点缀，科技感十足。
-- **CQ 码实时演练场**：内置交互式 CQ 码转换模拟器，输入 OneBot CQ 码即可实时预览 Gensokyo 的协议映射与气泡图文渲染。
-- **配置与 API 矩阵**：内置对 Gensokyo 的 `config.yml` 示例解析，以及全面、可搜索过滤 detour 的 API / CQ 码兼容矩阵。
-- **原生文档接入**：完整导入并聚合了 Gensokyo 网关的所有原厂接口使用说明文档。
+## 核心功能
 
----
+- **文档聚合**：整合了 Gensokyo-NewQQ 所有的原生接口与机制说明文档。
+- **兼容性矩阵**：提供 OneBot V11 标准 API 及 CQ 码在网关中的支持状态检索。
+- **演练场组件**：内置 CQ 码解析模拟器，用于展示网关对 OneBot CQ 码的解析与渲染逻辑。
 
 ## 本地开发
 
-本网站基于 Node.js 环境开发：
+运行本项目需要 Node.js 环境：
 
-### 安装依赖
-
-推荐使用国内淘宝镜像源加速依赖安装：
+### 1. 安装依赖
 
 ```bash
 npm install --registry=https://registry.npmmirror.com
 ```
 
-### 启动开发服务器
+### 2. 启动开发服务器
 
 ```bash
 npm run dev
 ```
 
-启动后可在浏览器中访问 `http://localhost:5173/` 实时预览热更新效果。
+启动后可在本地访问 `http://localhost:5173/` 进行预览。
 
-### 生成静态构建
+### 3. 构建静态文件
 
 ```bash
 npm run build
 ```
 
----
+构建生成的静态资源将输出至 `docs/.vitepress/dist` 目录。
 
 ## 开源协议
 
-本项目基于 MIT 协议开源发布。
+本项目基于 MIT 协议开源。
