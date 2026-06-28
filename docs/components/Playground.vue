@@ -48,9 +48,9 @@ const simulateOutput = computed(() => {
                 <span v-for="(part, idx) in simulateOutput" :key="idx">
                   <span v-if="part.type === 'text'">{{ part.content }}</span>
                   <span v-else-if="part.cqType === 'at'" class="render-at">@用户_{{ part.params.qq }}</span>
-                  <span v-else-if="part.cqType === 'face'" class="render-face">😊(ID:{{ part.params.id }})</span>
+                  <span v-else-if="part.cqType === 'face'" class="render-face">[表情: {{ part.params.id }}]</span>
                   <span v-else-if="part.cqType === 'image'" class="render-image">[图片: {{ part.params.file || 'CDN链接' }}]</span>
-                  <span v-else-if="part.cqType === 'markdown'" class="render-md">📝 Markdown卡片</span>
+                  <span v-else-if="part.cqType === 'markdown'" class="render-md">[Markdown卡片]</span>
                   <span v-else class="render-unknown">[{{ part.cqType }} 标记]</span>
                 </span>
               </div>
