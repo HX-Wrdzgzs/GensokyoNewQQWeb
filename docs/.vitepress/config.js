@@ -14,6 +14,7 @@ export default defineConfig({
       { text: '指南', link: '/guide/start' },
       { text: 'API & CQ码', link: '/api/api介绍' },
       { text: 'WebUI', link: '/guide/webui' },
+      { text: '示例项目', link: '/guide/amia' },
       { text: '运维', link: '/guide/operations' }
     ],
     sidebar: [
@@ -54,6 +55,12 @@ export default defineConfig({
         items: [
           { text: '健康检查与监控', link: '/guide/operations' },
           { text: 'Prometheus 指标', link: '/guide/metrics' }
+        ]
+      },
+      {
+        text: '示例项目',
+        items: [
+          { text: 'Amia 晓山瑞希', link: '/guide/amia' }
         ]
       }
     ],
