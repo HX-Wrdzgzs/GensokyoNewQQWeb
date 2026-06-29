@@ -12,13 +12,16 @@ export default defineConfig({
     nav: [
       { text: '主页', link: '/' },
       { text: '指南', link: '/guide/start' },
-      { text: 'API & CQ码', link: '/api/api介绍' }
+      { text: 'API & CQ码', link: '/api/api介绍' },
+      { text: 'WebUI', link: '/guide/webui' },
+      { text: '运维', link: '/guide/operations' }
     ],
     sidebar: [
       {
         text: '开始使用',
         items: [
           { text: '快速上手', link: '/guide/start' },
+          { text: '编译构建', link: '/guide/build' },
           { text: '兼容性矩阵', link: '/guide/matrix' },
           { text: '本版新增功能', link: '/本版新增功能' }
         ]
@@ -38,10 +41,24 @@ export default defineConfig({
           { text: '扩展 API 文档', link: '/api/扩展API文档' },
           { text: '扩展 CQ 码汇总', link: '/cq码/扩展CQ码汇总' }
         ]
+      },
+      {
+        text: 'WebUI 管理面板',
+        items: [
+          { text: '界面概览', link: '/guide/webui' },
+          { text: '登录与账户管理', link: '/guide/webui-auth' }
+        ]
+      },
+      {
+        text: '运维监控',
+        items: [
+          { text: '健康检查与监控', link: '/guide/operations' },
+          { text: 'Prometheus 指标', link: '/guide/metrics' }
+        ]
       }
     ],
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/Te-River/Gensokyo-NewQQ' }
+      { icon: 'github', link: 'https://github.com/HX-Wrdzgzs/Gensokyo-NewQQ' }
     ],
     footer: {
       message: '基于 MIT 协议开源发行',
