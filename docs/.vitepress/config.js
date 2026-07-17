@@ -1,36 +1,44 @@
 import { defineConfig } from 'vitepress'
 
 export default defineConfig({
-  title: "Gensokyo",
-  description: "OneBot V11 官方 QQ 机器人 Golang 网关服务端",
-  ignoreDeadLinks: true, // 忽略原始文档中的死链，防止构建失败
+  lang: 'zh-CN',
+  title: 'Gensokyo NewQQ',
+  description: 'Gensokyo-NewQQ 的 Web 文档、配置说明与 OneBot V11 接入指南',
+  lastUpdated: true,
+  ignoreDeadLinks: true,
   head: [
-    ['link', { rel: 'icon', href: '/head.gif' }]
+    ['link', { rel: 'icon', href: '/head.gif' }],
+    ['meta', { name: 'theme-color', content: '#3ecf8e' }]
   ],
   themeConfig: {
     logo: '/head.gif',
+    search: {
+      provider: 'local'
+    },
     nav: [
-      { text: '主页', link: '/' },
-      { text: '指南', link: '/guide/start' },
-      { text: 'API & CQ码', link: '/api/api介绍' },
+      { text: '首页', link: '/' },
+      { text: '快速开始', link: '/guide/start' },
+      { text: '配置指南', link: '/guide/configuration' },
+      { text: '能力矩阵', link: '/guide/matrix' },
       { text: 'WebUI', link: '/guide/webui' },
-      { text: '示例项目', link: '/guide/amia' },
-      { text: '运维', link: '/guide/operations' }
+      { text: '主仓库', link: 'https://github.com/Te-River/Gensokyo-NewQQ' }
     ],
     sidebar: [
       {
         text: '开始使用',
         items: [
+          { text: '项目概览', link: '/guide/overview' },
           { text: '快速上手', link: '/guide/start' },
+          { text: '配置指南', link: '/guide/configuration' },
           { text: '编译构建', link: '/guide/build' },
-          { text: '兼容性矩阵', link: '/guide/matrix' },
+          { text: '能力矩阵', link: '/guide/matrix' },
           { text: '本版新增功能', link: '/本版新增功能' }
         ]
       },
       {
         text: '核心机制',
         items: [
-          { text: 'idmap 虚拟ID映射', link: '/idmap' },
+          { text: 'idmap 虚拟 ID 映射', link: '/idmap' },
           { text: 'Markdown 消息发送', link: '/文档-markdown消息' },
           { text: 'Gensokyo 语法参考', link: '/Gensokyo语法参考' }
         ]
@@ -46,15 +54,8 @@ export default defineConfig({
       {
         text: 'WebUI 管理面板',
         items: [
-          { text: '界面概览', link: '/guide/webui' },
+          { text: '界面与安全说明', link: '/guide/webui' },
           { text: '登录与账户管理', link: '/guide/webui-auth' }
-        ]
-      },
-      {
-        text: '运维监控',
-        items: [
-          { text: '健康检查与监控', link: '/guide/operations' },
-          { text: 'Prometheus 指标', link: '/guide/metrics' }
         ]
       },
       {
@@ -64,11 +65,22 @@ export default defineConfig({
         ]
       }
     ],
+    outline: {
+      label: '本页目录',
+      level: [2, 3]
+    },
+    docFooter: {
+      prev: '上一页',
+      next: '下一页'
+    },
+    lastUpdated: {
+      text: '最后更新'
+    },
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/HX-Wrdzgzs/Gensokyo-NewQQ' }
+      { icon: 'github', link: 'https://github.com/Te-River/Gensokyo-NewQQ' }
     ],
     footer: {
-      message: '基于 MIT 协议开源发行',
+      message: 'Gensokyo-NewQQ 配套 Web 文档站',
       copyright: 'Copyright © 2026-present Gensokyo Project'
     }
   }
