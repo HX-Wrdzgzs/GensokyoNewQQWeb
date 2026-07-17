@@ -1,33 +1,45 @@
 # GensokyoNewQQWeb
 
-GensokyoNewQQWeb 是 Gensokyo-NewQQ 的配套文档站，基于 VitePress 构建，当前由个人与开发组内部维护。
+GensokyoNewQQWeb 是 [Te-River/Gensokyo-NewQQ](https://github.com/Te-River/Gensokyo-NewQQ) 的配套 Web 文档与项目入口，基于 VitePress 构建。
 
-## 当前状态
+本站用于整理项目概览、快速开始、配置说明、OneBot V11 能力矩阵、WebUI 使用边界以及扩展 API/CQ 码。涉及具体行为、默认值和版本差异时，以主仓库源码、Release 说明和当前版本自动生成的配置文件为准。
 
-- 维护范围：个人与开发组内部维护。
-- 使用范围：作为 Gensokyo-NewQQ 的文档入口。
-- 文档状态：优先维护项目说明、兼容性状态和常见问题。
-- 许可证状态：如仓库已有许可证文件，以实际文件为准。
+## 本地开发
 
-## 项目范围
+运行环境建议使用当前维护中的 Node.js LTS 版本。
 
-本项目用于整理 Gensokyo-NewQQ 的介绍、功能说明和使用边界，帮助维护者和使用者快速了解项目状态。
+```bash
+npm install
+npm run dev
+```
 
-主要内容包括：
+构建与本地预览：
 
-- 项目介绍。
-- 功能说明。
-- 兼容性状态。
-- 常见问题。
-- 文档入口整理。
+```bash
+npm run build
+npm run preview
+```
 
-## 维护注意事项
+VitePress 源文件位于 `docs/`，构建产物位于 `docs/.vitepress/dist/`。
 
-- 面向用户的说明优先放在 `docs/` 下。
-- 与源码行为相关的说明应和主仓库保持同步。
-- 不确定的行为不要写成稳定承诺。
-- README 保持简洁，不展开部署细节。
+## 内容结构
 
-## 授权说明
+- `docs/index.md`：项目首页。
+- `docs/guide/`：项目概览、快速开始、配置、构建、WebUI 和能力矩阵。
+- `docs/api/`：OneBot API 与项目扩展 API 文档。
+- `docs/cq码/`：标准 CQ 码差异与项目扩展 CQ 码。
+- `docs/components/`：首页演练场和能力矩阵等 Vue 组件。
+- `docs/.vitepress/`：站点配置与主题样式。
 
-如仓库已有许可证文件或历史授权说明，以仓库当前实际文件为准。后续如果调整授权策略，应同步更新 README 与许可证文件。
+## 维护原则
+
+- 主仓库是功能与版本信息的事实来源。
+- 不把未经测试的性能数字、兼容性结论或默认路径写成稳定承诺。
+- 标准 OneBot 映射、QQ 官方能力限制和 Gensokyo 项目扩展应明确区分。
+- 示例配置必须使用占位符，不得提交真实 Token、ClientSecret、Access Token 或登录密码。
+- 修改导航或新增页面后，应执行 `npm run build` 检查内部链接和 Vue 组件。
+
+## 相关项目
+
+- 主仓库：[Te-River/Gensokyo-NewQQ](https://github.com/Te-River/Gensokyo-NewQQ)
+- OneBot V11 规范：[botuniverse/onebot-11](https://github.com/botuniverse/onebot-11)
