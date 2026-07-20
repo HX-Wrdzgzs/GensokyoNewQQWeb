@@ -1,9 +1,9 @@
 # 配置指南
 
-Gensokyo 首次运行时会在工作目录生成 `config.yml`。配置文件包含机器人凭证、事件订阅、OneBot 连接方式、HTTP 服务和 WebUI 等设置。
+Gensokyo 首次运行时会在工作目录生成 `config.yml`。配置文件包含机器人凭证、事件订阅、OneBot 连接方式、HTTP 服务、图片上传和 WebUI 等设置。
 
 > [!CAUTION]
-> `token`、`client_secret`、WebSocket Token 和 HTTP Access Token 都属于敏感信息。不要把真实值提交到 Git、截图或公开日志中。
+> `token`、`client_secret`、WebSocket Token、HTTP Access Token、对象存储密钥和第三方 Cookie 都属于敏感信息。不要把真实值提交到 Git、截图或公开日志中。
 
 ## 最小配置示例
 
@@ -91,9 +91,61 @@ ws_token:
 
 开启 `enable_ws_server` 后，下游客户端主动连接 Gensokyo。连接路径由 `ws_server_path` 决定，并建议始终设置 `ws_server_token`。
 
+上游较新的 `main` 已增加浏览器 WebSocket Origin 校验。无 `Origin` 的非浏览器客户端可继续连接；浏览器来源需要满足本地回环地址或配置域名等校验条件。
+
 ### HTTP API 与反向 HTTP POST
 
 需要 HTTP 调用时，可配置 `http_address` 与 `http_access_token`；需要把事件推送到 HTTP 服务时，可使用 `post_url` 与 `post_secret`。不要在公网暴露无鉴权的 HTTP API。
+
+较新的上游提交还为 `/metrics`、`/healthz`、`/readyz` 和 `/updateport` 等端点补充了 Access Token 校验。固定版本部署时，应确认所用二进制是否已经包含对应修复。
+
+## 图片上传与 image_hosting
+
+Release008 新增统一的 `imagehosting` 实现，并把 `oss_type` 扩展到 4 至 10。当前配置模板中，各后端配置块直接位于 `settings` 下，而不是再额外嵌套一层 `image_hosting:`。
+
+| `oss_type` | 后端 | 主要字段 |
+|---:|---|---|
+| 0 | 本机上传 | `server_dir`、`port` 等 |
+| 1 | 旧腾讯云 COS | `t_COS_*` |
+| 2 | 百度云 BOS | `b_BCE_AK`、`b_BCE_SK` 等 |
+| 3 | 阿里云 OSS | `a_OSS_*` |
+| 4 | 腾讯云 COS 自签 | `cos.*` |
+| 5 | Bilibili | `bilibili.*` |
+| 6 | QQ 频道 | `qq_channel.*` |
+| 7 | ChatGLM | `chatglm` 空配置块 |
+| 8 | Ukaka | `ukaka` 空配置块 |
+| 9 | 星野 | `xingye` 空配置块 |
+| 10 | Nature | `nature` 空配置块 |
+
+腾讯云 COS 自签示例：
+
+```yaml
+settings:
+  oss_type: 4
+  cos:
+    secret_id: "your_secret_id"
+    secret_key: "your_secret_key"
+    region: "ap-guangzhou"
+    bucket: "your-bucket"
+    domain: ""
+```
+
+Bilibili 与 QQ 频道示例：
+
+```yaml
+settings:
+  oss_type: 5
+  bilibili:
+    csrf_token: "your_bili_jct"
+    sessdata: "your_sessdata"
+    bucket: "openplatform"
+
+  qq_channel:
+    channel_id: "your_channel_id"
+    token: "QQBot your_token"
+```
+
+`oss_type` 同一时间只应选择一个。第三方免费上传后端可能随服务策略变化，生产环境优先使用自己可控的对象存储。Cookie、SecretKey 和授权 Token 不应出现在仓库、前端页面或公开日志中。
 
 ## WebUI
 
@@ -106,9 +158,21 @@ ws_token:
 - 限制来源 IP，或增加额外身份验证。
 - 不在网页、日志和问题反馈中展示完整配置文件。
 
+## Release008 配置自动补全
+
+Release008 重构了缺失配置项的补全逻辑：
+
+- 提取完整 YAML 块，而不是只复制单行。
+- 已存在父块时跳过重复的子 key。
+- 支持多层父级追溯。
+- 补全 `bool` 和 `int` 类型字段。
+- 忽略注释行中的伪 key。
+
+自动补全仍不能替代人工检查。升级后应确认缩进、数组和后端配置块没有重复或错位。
+
 ## 修改配置后的行为
 
-部分字段支持运行期间重新加载，但连接地址、机器人凭证、Intent、服务端口、WebSocket 服务和 WebUI 登录信息等关键字段通常需要重启才能完全生效。
+部分字段支持运行期间重新加载，但连接地址、机器人凭证、Intent、服务端口、WebSocket 服务、图片上传后端和 WebUI 登录信息等关键字段通常需要重启才能完全生效。
 
 修改后建议按以下顺序验证：
 
@@ -117,7 +181,8 @@ ws_token:
 3. 确认 QQ 官方连接建立成功。
 4. 确认下游 OneBot 客户端连接成功。
 5. 分别测试群聊、C2C 或频道事件。
-6. 检查 Gensokyo 与下游客户端两侧日志。
+6. 测试所选图片上传后端和 `[CQ:file]` 文件发送。
+7. 检查 Gensokyo 与下游客户端两侧日志。
 
 ## 配置维护建议
 
