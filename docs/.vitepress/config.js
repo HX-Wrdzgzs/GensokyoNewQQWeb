@@ -32,6 +32,7 @@ export default defineConfig({
           { text: '配置指南', link: '/guide/configuration' },
           { text: '编译构建', link: '/guide/build' },
           { text: '能力矩阵', link: '/guide/matrix' },
+          { text: 'Release008 更新', link: '/release/v008' },
           { text: '本版新增功能', link: '/本版新增功能' }
         ]
       },
