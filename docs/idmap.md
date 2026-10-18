@@ -41,7 +41,7 @@
 | OAuth/GitHub rUIN | `ruin:OAuth_Github:<index>:<id>` |
 | 旧版或未分类原始值 | `raw:<value>` |
 
-QQ OpenID 的身份键只包含 `QQ`、`AppID` 和 OpenID 本体，不再按群聊、私聊或群成员事件拆分。QQ 平台下同一个 QQ 号在同一个 AppID 内应复用同一个 OpenID，因此群聊、C2C、好友事件、群成员事件都会落到同一个 vUIN。频道相关 ID 暂不纳入本轮重构，继续沿用现有逻辑。
+QQ OpenID 的身份键只包含 `QQ`、`AppID` 和 OpenID 本体，不再按群聊、私聊或群成员事件拆分。QQ 平台下同一个 QQ 号在同一个 AppID 内应复用同一个 OpenID，因此群聊、C2C、好友事件、群成员事件都会落到同一个 vUIN。
 
 对外传递 rUIN 时使用：
 
@@ -118,6 +118,72 @@ BindIdentityToVuin(ruin:QQ:0:2870338968, 10001)
 7. 校验完成后在 `openid-map.db/meta` 写入迁移标记。
 
 迁移完成后热路径只访问新库，不再惰性复制旧库内容。旧 `idmap.db` 不会被自动删除，确认稳定后可手动备份或删除。
+
+> **2026-08-01 修复：** `StartMigration` 已改为**阻塞式迁移**（此前为 `go backgroundMigration()` 非阻塞）。迁移完成才返回，确保 `main.go` 调用点之后才连 WS / 启动 HTTP，避免迁移期间 `storeIdentity` 双写与 `backgroundMigration` 迁入并发产生 2 row → 1 OpenID 重复映射。同时 `writeBatchToNewDB` 追加按 value 委重（逆向条目 `uin:row-*` 迁入前查正向 `uin:<OpenID>` 是否已存在，若已有则跳过）。
+
+## 强制解绑工具
+
+迁移异常或历史数据残留导致 2 个虚拟 ID 指向同一 OpenID 时，可用强制解绑工具按 OpenID 直接清理全部映射：
+
+| 工具 | 调用方式 | 行为 |
+|------|---------|------|
+| `ForceUnbindID(id)` | Go 内部 | 入参支持**OpenID 字符串**或**虚拟 ID**两种形式。OpenID 时直接删正向 `uin:<OpenID>` + 扫删所有指向同一 OpenID 的逆向条目 `uin:row-*`（新库+旧库）；虚拟 ID 时先通过逆向条目 `uin:row-<N>` 反查 OpenID（新库+旧库回退），再按 OpenID 清理。返回清理条数 |
+| `getid type=18` | HTTP API | `GET /getid?type=18&id=<OpenID或虚拟ID>`，返回 `{"status":"success","unbound_count":N}` |
+| `UpdateVirtualValue(old, 0)` | `getid type=5` | `newRowValue=0` 解绑时已同步彻底清理：删正向 + 扫删所有指向同一 OpenID 的重复逆向条目（2026-08-01 修复，此前只删单条逆向不删正向，导致解绑失效） |
+
+解绑后该 OpenID 彻底无映射，下次 `storeIdentity` 会重新分配唯一虚拟 ID。
+
+> **2026-08-01 修复：** `ForceUnbindID` 原仅接受 OpenID 入参，但用户实际常传虚拟 ID（row 值），导致查正向 `uin:<虚拟ID>` 找不到直接返回，`unboundCount=0`（表现为 `getid type=18` 返回 false）。现已支持双形式入参：纯数字视为虚拟 ID，先反查 OpenID 再清理；非纯数字视为 OpenID 直接清理。同时去掉“正向条目存在检查”的提前返回，即便正向已被其他路径删除，也要扫删残留逆向条目，确保彻底清理。
+
+## 批量导出接口
+
+迁移调试或数据核查时，可一次性导出所有身份映射：
+
+| 工具 | 调用方式 | 行为 |
+|------|---------|------|
+| `ListAllIdentities()` | Go 内部 | 返回 `*IdentitySnapshot`，包含所有 OpenID <-> 虚拟 ID 映射及用户名缓存 |
+| `getid type=19` | HTTP API | `GET /getid?type=19`，返回所有身份映射的 JSON 快照 |
+
+**调用示例：**
+
+```bash
+# 本地访问（无 lotus_password 时）
+curl http://127.0.0.1:15630/getid?type=19
+
+# 带认证（有 lotus_password 时，需计算 HMAC 签名）
+curl "http://<server>:<port>/getid?type=19&timestamp=<ts>&token=<hmac>"
+```
+
+**响应示例：**
+
+```json
+{
+  "mappings": [
+    {"real_id": "ABC123DEF456...", "virtual_id": 10001, "username": "张三"},
+    {"real_id": "789GHI012JKL...", "virtual_id": 10002, "username": "李四"},
+    {"real_id": "MNO345PQR678...", "virtual_id": 10003, "username": ""}
+  ],
+  "count": 3,
+  "timestamp": 1723190400
+}
+```
+
+**字段说明：**
+- `real_id`：QQ 官方 OpenID（已去除内部 UIN 前缀）
+- `virtual_id`：Gensokyo 分配的虚拟数字 ID（下游 OneBot 使用）
+- `username`：用户名缓存（入站时自动缓存，10 分钟 TTL，可能为空）
+- `count`：映射总数
+- `timestamp`：快照生成时间（Unix 时间戳，秒）
+
+**快照机制：**
+- 接口使用 bbolt MVCC 事务，在请求到达时生成一致性快照
+- 即使遍历期间有其他消息触发新的映射写入，也不影响本次导出结果
+- `timestamp` 字段可用于判断数据新鲜度
+
+**注意事项：**
+- type=19 不走 lotus/gRPC 远程调用，始终查询本地 identityDB
+- 受 `IDMapAuthMiddleware` 保护：有 `lotus_password` 时需 HMAC 认证，无密码时仅允许本地访问
+- 数据量较大时响应可能较慢，建议仅在调试时使用
 
 ## msgid-map
 

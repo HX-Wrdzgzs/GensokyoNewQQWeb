@@ -60,8 +60,6 @@ settings:
 
 | Intent | 说明 |
 |---|---|
-| `ATMessageEventHandler` | QQ 频道中的 @ 消息 |
-| `DirectMessageHandler` | QQ 频道私信 |
 | `GroupATMessageEventHandler` | QQ 群中的 @ 消息 |
 | `GroupMessageEventHandler` | QQ 群普通消息 |
 | `C2CMessageEventHandler` | C2C 私聊消息 |

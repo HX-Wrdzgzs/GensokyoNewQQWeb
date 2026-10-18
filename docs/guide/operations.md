@@ -73,4 +73,4 @@ scrape_configs:
 Master 权限用户向 Bot 发送私聊消息时可触发：
 
 - **`-status`** — 回显系统运行状态面板（Uptime、内存、协程数、慢事件数、消息 IO 统计）
-- **`-broadcast <内容>`** — 向 Bot 加入的所有频道和已知群聊批量发送通知
+- **`-broadcast <内容>`** — 向 Bot 加入的已知群聊批量发送通知

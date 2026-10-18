@@ -21,8 +21,8 @@ features:
     details: 将 QQ 官方 WebSocket 事件与 HTTP API 转换为 OneBot V11 事件和调用，降低现有机器人框架的迁移成本。
   - title: 多种连接方式
     details: 支持 HTTP API、反向 HTTP POST、正向 WebSocket 和反向 WebSocket，可按现有部署拓扑选择连接方式。
-  - title: 群聊、C2C 与频道事件
-    details: 处理 QQ 群、C2C 私聊和 QQ 频道相关事件，并提供面向下游框架的统一事件结构。
+  - title: 群聊与 C2C 事件
+    details: 处理 QQ 群与 C2C 私聊相关事件，并提供面向下游框架的统一事件结构。
   - title: ID 映射与消息适配
     details: 通过 idmap 维护 OpenID 与下游数字 ID 的对应关系，并处理 @、回复、图片、语音、视频和 Markdown 等消息。
   - title: 项目扩展能力

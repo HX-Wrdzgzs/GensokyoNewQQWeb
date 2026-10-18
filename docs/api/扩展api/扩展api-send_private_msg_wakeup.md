@@ -1,12 +1,16 @@
 # send_private_msg_wakeup
 
+> 🧪 **测试插件**：[gsk-wakeup](https://github.com/Te-River/Gensokyo-NewQQ-Test-plugins/tree/main/gsk-wakeup) — 发送「召回测试」体验
+
 ## 说明
 
-向用户发送 C2C 互动召回消息。发送时会设置 `is_wakeup=true`，不依赖被动回复上下文中的 `msg_id` 或 `event_id`。
+向用户发送 C2C 召回消息。发送时会设置 `is_wakeup=true`，不依赖被动回复上下文中的 `msg_id` 或 `event_id`。
 
 范围：`私聊 (C2C)`
 
 ## 请求参数
+
+与 `send_private_msg` 一致：
 
 | 参数 | 类型 | 必填 | 说明 |
 |------|------|:---:|------|

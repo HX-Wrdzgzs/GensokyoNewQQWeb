@@ -7,7 +7,6 @@ const currentTab = ref('all')
 const matrixItems = [
   { id: 'api-send-private-msg', name: '/send_private_msg', type: 'api', status: 'supported', desc: '发送 C2C 私聊消息' },
   { id: 'api-send-group-msg', name: '/send_group_msg', type: 'api', status: 'supported', desc: '发送 QQ 群消息' },
-  { id: 'api-send-guild-channel-msg', name: '/send_guild_channel_msg', type: 'api', status: 'supported', desc: '发送 QQ 频道子频道消息' },
   { id: 'api-send-msg', name: '/send_msg', type: 'api', status: 'adapted', desc: '按消息类型路由发送；具体行为受 QQ 官方场景限制' },
   { id: 'api-delete-msg', name: '/delete_msg', type: 'api', status: 'adapted', desc: '撤回消息；可撤回范围取决于官方接口权限' },
   { id: 'api-delete-group-msg', name: '/delete_group_msg', type: 'api', status: 'adapted', desc: '撤回 QQ 群用户或机器人消息' },
@@ -24,7 +23,7 @@ const matrixItems = [
   { id: 'api-get-login-info', name: '/get_login_info', type: 'api', status: 'supported', desc: '获取当前机器人信息' },
   { id: 'api-get-stranger-info', name: '/get_stranger_info', type: 'api', status: 'adapted', desc: '获取用户信息；字段取决于可获得的官方数据' },
   { id: 'api-get-friend-list', name: '/get_friend_list', type: 'api', status: 'adapted', desc: '获取好友或 C2C 相关列表' },
-  { id: 'api-get-group-info', name: '/get_group_info', type: 'api', status: 'adapted', desc: '获取群聊或频道信息' },
+  { id: 'api-get-group-info', name: '/get_group_info', type: 'api', status: 'adapted', desc: '获取群聊信息' },
   { id: 'api-get-group-list', name: '/get_group_list', type: 'api', status: 'adapted', desc: '获取群聊列表' },
   { id: 'api-get-group-member-info', name: '/get_group_member_info', type: 'api', status: 'adapted', desc: '获取群成员信息' },
   { id: 'api-get-group-member-list', name: '/get_group_member_list', type: 'api', status: 'adapted', desc: '获取群成员列表' },

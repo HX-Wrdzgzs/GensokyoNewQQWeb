@@ -23,7 +23,7 @@ OneBot V11 客户端
 
 - 将 QQ 官方机器人事件转换为 OneBot V11 事件。
 - 提供 HTTP API、反向 HTTP POST、正向 WebSocket和反向 WebSocket 等连接方式。
-- 支持群聊、C2C 私聊和 QQ 频道相关事件的转换。
+- 支持群聊、C2C 私聊等事件的转换。
 - 通过 idmap 在 OpenID 与下游使用的数字 ID 之间建立映射。
 - 支持文字、图片、语音、视频、Markdown 等消息类型，并提供项目扩展 API 与 CQ 码。
 - 提供 WebUI 管理入口，便于查看和调整实例配置。

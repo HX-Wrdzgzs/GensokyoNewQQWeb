@@ -7,7 +7,7 @@
 1. 打开 [QQ 开放平台](https://q.qq.com/qqbot/) 并完成开发者注册。
 2. 创建机器人应用。
 3. 在控制台取得 `AppID`、`Token` 和 `ClientSecret`。
-4. 根据实际场景申请群聊、C2C 私聊或 QQ 频道相关权限与 Intent。
+4. 根据实际场景申请群聊、C2C 私聊相关权限与 Intent。
 
 > [!CAUTION]
 > `Token` 与 `ClientSecret` 是敏感凭证。不要发到群聊、Issue、截图、网页前端或公开仓库中。
