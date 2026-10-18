@@ -9,7 +9,6 @@
 | `-` | 通用解析；是否能发送取决于调用的 Action 和 QQ API 限制 |
 | `私聊 (C2C)` | QQ C2C 单聊 |
 | `q群 (Group Chat)` | QQ 群 |
-| `q頻 (QQ Guild)` | QQ 频道/子频道 |
 
 ## 扩展 CQ 码
 
@@ -21,7 +20,15 @@
 | 回复 | `[CQ:reply,id=<消息ID>]` | `q群 (Group Chat)` | `send_group_msg` 会尝试转换为 `message_reference`；QQ q群可能接受但不渲染引用样式。 |
 | 成员变动 | `[CQ:member,type=add/remove,group_id=<虚拟群ID>,user_id=<虚拟用户ID>]` | `q群 (Group Chat)` | 群成员入群/退群通知和后续回复路由。见 [CQ member](./cq码/扩展CQ码/扩展cq码-cq-member.md)。 |
 | 主动标记 | `[CQ:active,type=<值>,sub_type=<值>]` | `-` | 当前只解析并移除该 CQ 码，记录 `type` / `sub_type`；没有后续发送逻辑。见 [CQ active](./cq码/扩展CQ码/扩展cq码-cq-active.md)。 |
-| Markdown @ | `[CQ:at,qq=<虚拟用户ID>]` | `q群 (Group Chat)` / `q頻 (QQ Guild)` | 在 Markdown 内容中转换为 `<qqbot-at-user id="OpenID" />`。见 [CQ at Markdown](./cq码/扩展CQ码/扩展cq码-cq-at.md)。 |
+| 召回标记 | `[CQ:wakeup,userid=<目标用户>]` | `私聊 (C2C)` | 将 `send_private_msg` 消息作为 C2C 互动召回（`is_wakeup=true`）发送给 `userid` 指定用户（OpenID 或虚拟 ID）。见 [CQ wakeup](./cq码/扩展CQ码/扩展cq码-cq-wakeup.md)。 |
+| @ | `[CQ:at,qq=<虚拟用户ID>]` | `q群 (Group Chat)` | 纯文本出站转为 `@用户名 `，Markdown 出站转为 `<qqbot-at-user id="OpenID" />`。图文混合消息（msg_type=7）同样走纯文本转换路径；图文混合走 Markdown 路径（auto_md，msg_type=2）同样走 Markdown 转换路径（2026-08 修复）。见 [CQ at](./cq码/扩展CQ码/扩展cq码-cq-at.md)。 |
+| 消息撤回 | `[CQ:remove,user_id=<虚拟用户ID>,msg_id=<虚拟消息ID>]` | `q群 (Group Chat)` | 在 `send_group_msg` 中携带，撤回指定群消息。需要同时提供 `user_id` 和 `msg_id`。见 [CQ remove](./cq码/扩展CQ码/扩展cq码-cq-remove.md)。 |
+| 卡片消息 | `[CQ:card,title=<标题>,desc=<描述>,pic=<图片URL>,url=<跳转链接>]` | `q群 (Group Chat)` | 群聊图文卡片消息（`msg_type=8`）。参数顺序无关，`title` 必填，其余可选。见 [CQ card](./cq码/扩展CQ码/扩展cq码-cq-card.md)。 |
+| 输入状态 | `[CQ:input_notify,type=<类型>,second=<秒数>]` | `私聊 (C2C)` | 在发送正文前先发送"正在输入"状态（`msg_type=6`）。`type` 默认 `1`，`second` 最大 `60`。见 [CQ input_notify](./cq码/扩展CQ码/扩展cq码-cq-input_notify.md)。 |
+| 流式消息 | `[CQ:stream,type:start,qq:<虚拟用户ID>]` | `私聊 (C2C)` | 流式消息，分 start→mid→finish 三阶段逐片发送，实现打字机效果。见 [CQ stream](./cq码/扩展CQ码/扩展cq码-cq-stream.md)。 |
+| 键盘 | `[CQ:keyboard,data=<base64 或 JSON>]` | `q群 (Group Chat)` / `私聊 (C2C)` | 文本消息附加官方内嵌键盘（按钮消息）；与 `[CQ:markdown]` 同存时 markdown 内嵌 keyboard 优先。见 [CQ keyboard](./cq码/扩展CQ码/扩展cq码-cq-keyboard.md)。 |
+| 群管理动作 | `[CQ:set_group,action=<ban/whole_ban/add_request/strategy_execute/strategy_delete/kick/blacklist_add/blacklist_del>,...]` | `q群 (Group Chat)` | 出站动作统一码：禁言 / 全员禁言（⚠️ **固定失败**：官方 POST 无全员禁言写入字段）/ 入群审批 / 策略执行与删除 / 踢出（≤20 可同步拉黑）/ 黑名单增删。见 [CQ set_group](./cq码/扩展CQ码/扩展cq码-cq_set_group.md)。 |
+| 群信息展开 | `[CQ:group_info,field=<name/memo/member_count/all>,group_id=<虚拟群ID>,fallback=<失败替换文本>]` | `q群 (Group Chat)` / `私聊 (C2C)` | 正文展开群名/群简报/成员数或三字段 JSON，同消息同群多码合并一次取数。需 `cq_parse_mode: new`。见 [CQ group_info](./cq码/扩展CQ码/扩展cq码-cq-group_info.md)。 |
 
 ## 消息段
 
@@ -32,4 +39,51 @@
 | `markdown` | `data` | 接受 JSON、base64 JSON 或 `base64://` 前缀。 |
 | `avatar` | `qq` | 等同 `[CQ:avatar]`。 |
 | `active` | `type`, `sub_type` | 解析后不写入文本。 |
+| `wakeup` | `userid` | 等同 `[CQ:wakeup,userid=xxx]`，解析后不写入文本。 |
 | `member` | `type`, `group_id`, `user_id` | 等同 `[CQ:member]`。 |
+| `keyboard` | `data` | 等同 `[CQ:keyboard]`，解码后存入 `foundItems["keyboard"]`。 |
+| `set_group` | `action`, `group_id`, `user_id` 等 | 还原为 CQ 码字符串拼入 messageText，与字符串路径统一分发。 |
+| `stream` | `type`, `qq` | 等同 `[CQ:stream]`，JSON 编码存入 `foundItems["stream"]`。 |
+| `group_info` | `field`, `group_id`, `fallback` | 等同 `[CQ:group_info]`（需 `cq_parse_mode: new`），替换值按段位置展开。 |
+
+## Markdown 图片尺寸
+
+Gensokyo 支持 QQ 官方 Markdown 的图片尺寸语法：
+
+```markdown
+![text #100px #100px](图片链接)  # 宽高均为 100px（宽高必须成对指定）
+```
+
+详见 [Markdown 消息文档](./文档-markdown消息.md)。
+
+## 图文混排（非 Markdown）
+
+文本 + 单张图片会自动合并为一条 QQ 富媒体消息（`msg_type=7`）发送，不需要 Markdown：
+
+| 项 | 说明 |
+|----|------|
+| 触发条件 | 恰好 1 张图片，且文本非空 |
+| 范围 | `q群 (Group Chat)`、`私聊 (C2C)`（含 `send_group_msg_raw`、`send_private_msg_wakeup`） |
+| 图片来源 | `file://` 本地路径、`http(s)://` 链接、`base64://` 数据（对应 `local_image` / `url_image` / `url_images` / `base64_image`） |
+| `[CQ:at]` | 文本段中的 `[CQ:at,qq=虚拟ID]` 转为 `@用户名 `，与纯文本路径一致 |
+| `[CQ:reply]` | 支持回复引用，转换为 `message_reference` 并设置 `msg_id`（群聊与私聊均支持） |
+
+示例：
+
+```text
+[CQ:image,file=https://example.com/pic.png]这是图片说明
+```
+
+消息段模式写法（`[CQ:image,file=...]` 与 `{"type":"image","data":{"file":"..."}}` 等价，均进入同一套解析逻辑）：
+
+```json
+[
+  {"type": "image", "data": {"file": "https://example.com/pic.png"}},
+  {"type": "text", "data": {"text": "这是图片说明"}}
+]
+```
+
+注意：
+
+- 多张图片（或纯图片无文本）不会合并，会按 foundItems 逐条作为富媒体消息发送。
+- 群聊中若开启 `two_way_echo`，图文混排可能被自动转为 Markdown（`msg_type=2`）发送。

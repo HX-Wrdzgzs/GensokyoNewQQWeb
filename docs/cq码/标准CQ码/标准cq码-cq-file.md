@@ -1,92 +1,115 @@
 # [CQ:file]
 
+> 🧪 **测试插件**：[CQ-file](https://github.com/Te-River/Gensokyo-NewQQ-Test-plugins/tree/main/CQ-file) — 发送「文件测试」体验
+
 ## 用途
 
-`[CQ:file]` 用于发送文件消息。QQ Bot API v2 支持 `file_type=4` 的富媒体文件上传，Gensokyo-NewQQ 在 Release008 中补全了出站发送能力。
+`[CQ:file]` 用于发送文件消息。QQ Bot API v2 支持 `file_type=4`（文件）的富媒体上传，可通过 CDN 直接上传或通过 URL 链接发送。
 
-范围：`q群 (Group Chat)` / `私聊 (C2C)` / `C2C 互动召回`
+范围：`q群 (Group Chat)` / `C2C (私聊)` / `C2C 互动召回`
 
 ## 语法
 
 ```text
-[CQ:file,file=file:///path/to/file]
-[CQ:file,file=http://example.com/file.zip]
-[CQ:file,file=https://example.com/file.zip]
-[CQ:file,file=base64://<base64_data>]
-[CQ:file,file=file:///path/to/file,file_name=report.pdf]
+[CQ:file,file=file:///path/to/file]                // 本地文件路径
+[CQ:file,file=http://example.com/file.zip]          // HTTP 远程文件
+[CQ:file,file=https://example.com/file.zip]         // HTTPS 远程文件
+[CQ:file,file=base64://<base64_data>]               // base64 编码数据
+[CQ:file,file=file:///path,file_name=myfile.txt]    // 可选指定文件名
 ```
 
-数组消息段：
+所有格式均支持可选的 `file_name` 参数，用于自定义文件名。该参数会以 `file_name` 字段写入 QQ Bot API 的 `/files` 上传请求体中，QQ 收到后即以此名显示。
 
-```json
-{
-  "type": "file",
-  "data": {
-    "file": "file:///path/to/file",
-    "file_name": "report.pdf"
-  }
-}
-```
+## 与标准 OneBot V11 的差异
 
-## 与 OneBot V11 的差异
+标准 OneBot V11 协议中 `[CQ:file]` 仅用于接收消息时的文件信息上报，**不支持发送文件**。Gensokyo 扩展了 `[CQ:file]` 使其**支持出站发送**，利用 QQ Bot API v2 的富媒体文件上传能力。
 
-标准 OneBot V11 中，文件消息段主要用于接收侧文件信息。Gensokyo-NewQQ 扩展了出站文件发送，并把文件转换为 QQ Bot API v2 富媒体请求。
-
-| 能力 | 标准 OneBot V11 | Gensokyo-NewQQ |
-|---|---|---|
-| 出站发送文件 | 未规定通用实现 | 支持 |
-| 本地文件 | 不适用 | `file:///` |
-| 远程文件 | 不适用 | `http://` / `https://` |
-| base64 文件 | 不适用 | `base64://` |
-| 指定文件名 | 不适用 | `file_name` |
+| 差异点 | 标准 OneBot V11 | Gensokyo 扩展 |
+|--------|----------------|---------------|
+| 发送文件 | ❌ 不支持 | ✅ 完整支持 |
+| 本地文件 | ❌ | ✅ `file:///` 路径 |
+| URL 文件 | ❌ | ✅ `http(s)://` 链接 |
+| base64 | ❌ | ✅ `base64://` 数据 |
+| 自定义文件名 | ❌ | ✅ `file_name` 参数(预留) |
 
 ## 解析行为
 
-| 来源 | 内部类型 | 处理方式 |
-|---|---|---|
-| `file:///` | `local_file` | URL 解码后读取本地文件，转 base64 并上传 QQ CDN |
-| `http://` | `url_file` | 由 QQ 富媒体接口拉取 URL |
-| `https://` | `url_files` | 由 QQ 富媒体接口拉取 URL |
-| `base64://` | `base64_file` | 去掉前缀后上传 QQ CDN |
+根据 `file` 值的前缀自动判断文件来源类型：
 
-本地文件路径中的中文、空格等 URL 编码字符会先执行解码。无前缀的未知 URL 会经过 SSRF 检查后再进入兼容 fallback。
+| 前缀 | foundItems key | 处理方式 |
+|------|---------------|----------|
+| `file:///` | `local_file` | 本地路径，URL 解码后 `os.ReadFile` 读取，base64 编码后走 QQ CDN 上传 |
+| `http://` | `url_file` | HTTP URL，直接作为 `RichMediaMessage.URL` 交给 QQ CDN 拉取 |
+| `https://` | `url_files` | HTTPS URL，同上 |
+| `base64://` | `base64_file` | 去除前缀后直接走 QQ CDN 上传 |
+
+文件上传走 `POST /v2/groups/{group_id}/files` 或 `POST /v2/users/{user_id}/files` 接口，`file_type=4`（上传方式与大小限制见下节）。
+
+## 上传方式与大小限制
+
+QQ Bot API v2 的 `/files` 接口支持三种上传方式，Gensokyo 按数据大小自动选择：
+
+| 方式 | 触发条件 | 说明 |
+|------|----------|------|
+| URL 上传 | `file` 为 `http(s)://` | 传入 `url`，平台下载转存；服务端可能下载失败 |
+| 直接上传二进制 | base64/二进制数据 ≤ 5MB | 传入 `file_data`，官方限制"需要在 5M 以内" |
+| 分片上传合并 | base64/二进制数据 > 5MB | 先 `upload_prepare` + `upload_part_finish` 完成分片，再携带 `upload_id` 调用本接口合并（官方推荐） |
+
+- **5MB 直传上限**：`file_data` 超过 5MB 时 QQ 侧会拒绝（`850031 上传文件超过大小限制`），因此 Gensokyo 在 base64/二进制直传超过 5MB 时自动改走分片上传，无需用户配置；5MB 以内仍走 `file_data` 直传，行为不变。
+- **平台软限制**：分片上传合并后，平台按类型有软限制（图片 20MB / 视频 30MB / 语音 20MB / 文件 200MB）；超过软限制平台会降级为文件类型下发，超过硬限制（200MB）则报错。软限制是平台侧行为，不影响客户端选择上传方式。
 
 ## 文件名优先级
 
-1. 显式传入的 `file_name`。
-2. 从本地路径或 URL 末尾提取的文件名。
-3. 无法推断时留空。
+1. `file_name` 参数（如果填写）
+2. `filepath.Base()` 自动从路径/URL 末尾提取
+3. 空（base64 来源无法提取文件名）
 
-base64 来源通常无法自动推断文件名，建议明确填写 `file_name`。
+> 💡 **注意：** 使用 `file_data`（base64）上传时，如需自定义文件名，请添加 `file_name` 参数。URL 方式发送时 QQ 默认从 URL 末尾提取文件名，也可用 `file_name` 覆盖。
 
-## NoneBot2 示例
+## 使用示例
+
+### NoneBot 插件发送本地文件
 
 ```python
 from nonebot.adapters.onebot.v11 import Message, MessageSegment
 
+# 发送本地文件到群
 await bot.send_group_msg(
-    group_id=123456,
+    group_id=821404315,
+    message=Message([
+        MessageSegment("file", {"file": "file:///D:/data/document.pdf"}),
+    ]),
+)
+
+# 发送本地文件并指定文件名（预留）
+await bot.send_group_msg(
+    group_id=821404315,
     message=Message([
         MessageSegment("file", {
-            "file": "file:///D:/data/report.pdf",
+            "file": "file:///D:/data/document.pdf",
             "file_name": "报告.pdf",
         }),
     ]),
 )
 
+# 发送远程文件到私聊
 await bot.send_private_msg(
-    user_id="目标 OpenID 或虚拟用户 ID",
+    user_id="<OpenID>",
     message=Message([
-        MessageSegment("file", {
-            "file": "https://example.com/archive.zip",
-        }),
+        MessageSegment("file", {"file": "https://example.com/file.zip"}),
     ]),
 )
 ```
 
-## 注意事项
+### CQ 码字符串格式
 
-- 本地路径由 Gensokyo 进程读取，必须确保运行账户具有文件权限。
-- 不要允许不可信用户任意提交本地路径或内网 URL。
-- 大文件、网络超时、QQ 官方限制和文件类型策略仍可能导致发送失败。
-- `send_private_msg_wakeup` 的实际结果会通过 `c2c_wakeup_resp` notice 上报。
+```text
+[CQ:file,file=file:///D:/data/report.zip]
+[CQ:file,file=https://example.com/software.exe,file_name=installer.exe]
+```
+
+## 支持场景
+
+- 群聊发送文件（`send_group_msg` / `send_to_group`）
+- 私聊发送文件（`send_private_msg`）
+- 私聊互动召回消息（`send_private_msg_wakeup`）
