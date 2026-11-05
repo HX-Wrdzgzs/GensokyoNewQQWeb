@@ -10,7 +10,7 @@
 
 ```powershell
 # 克隆仓库
-git clone https://github.com/HX-Wrdzgzs/Gensokyo-NewQQ.git
+git clone https://github.com/Te-River/Gensokyo-NewQQ.git
 cd Gensokyo-NewQQ
 
 # 构建前端（可选，已包含预构建 dist）

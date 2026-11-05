@@ -8,7 +8,7 @@
 
 `[CQ:active]` 是 Gensokyo-NewQQ 用于标记主动或召回消息的扩展消息段。Release008 重点修复了它在 `send_private_msg_wakeup` 中的处理。
 
-范围：`私聊 (C2C)` / `send_private_msg_wakeup`
+范围：`q群 (Group Chat)` / `私聊 (C2C)`（`send_group_msg` 与 `send_private_msg` 均识别该标记并强制走主动推送；`send_private_msg_wakeup` 消费并跳过该标记）
 
 ## 语法
 
@@ -98,4 +98,5 @@ Action 处理结束后返回标准成功响应；实际 QQ 发送结果会另行
 
 ## 注意
 
-裸 `[CQ:active]` 当前不会被文本正则匹配。需要 C2C 召回消息时，使用 [`send_private_msg_wakeup`](../../api/扩展api/扩展api-send_private_msg_wakeup.md)。
+- 裸 `[CQ:active]`（无参数）自 2026-11 的 CQ 码空白容错适配起可被文本正则识别，宽松写法（`[CQ:active ]`、`[CQ:active , ]`、`[CQ:ACTIVE]`）同样命中，识别后从正文移除。
+- `[CQ:active]` 只切换发送通道，不改变消息内容；需要 C2C 互动召回（`is_wakeup=true`）时，请直接使用 [`send_private_msg_wakeup`](../../api/扩展api/扩展api-send_private_msg_wakeup.md)。

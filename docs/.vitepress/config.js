@@ -99,7 +99,8 @@ export default defineConfig({
               { text: 'delete_group_msg', link: '/api/扩展api/扩展api-delete_group_msg' },
               { text: 'get_group_join_request_list', link: '/api/扩展api/扩展api-get_group_join_request_list' },
               { text: 'get_group_bot_state', link: '/api/扩展api/扩展api-get_group_bot_state' },
-              { text: '入群自动审批策略', link: '/api/扩展api/扩展api-join_approval_strategy' }
+              { text: '入群自动审批策略', link: '/api/扩展api/扩展api-join_approval_strategy' },
+              { text: '素材管理', link: '/api/扩展api/扩展api-media_images' }
             ]
           }
         ]
@@ -116,6 +117,14 @@ export default defineConfig({
         items: [
           { text: '健康检查与运维', link: '/guide/operations' },
           { text: 'Prometheus 监控指标', link: '/guide/metrics' }
+        ]
+      },
+      {
+        text: 'Rust 重构',
+        items: [
+          { text: 'Rust 重构概览', link: '/rust/overview' },
+          { text: '构建与验证', link: '/rust/build' },
+          { text: '性能对比', link: '/rust/perf' }
         ]
       },
       {

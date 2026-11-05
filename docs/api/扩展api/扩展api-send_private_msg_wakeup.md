@@ -19,13 +19,16 @@
 
 无法把 `user_id` 解析为 32 位 OpenID 时，请求不会发送。
 
-## Release008 行为
+## 行为（Release008 起）
 
 - Handler 同步处理请求，避免异步任务未返回造成 WebSocket 调用超时。
-- `[CQ:active]`、`active_type` 和 `active_sub_type` 会被消费并跳过，不会作为媒体类型发送。
-- 只有 `[CQ:active]`、没有其他内容时，会发送一个空白召回请求。
+- `[CQ:active]`、`active_type`、`active_sub_type` 与 `[CQ:wakeup]` 会被消费并跳过，不会作为媒体类型发送。
+- 每一次发送都单独构造 `MessageToCreate`，强制 `is_wakeup=true` 且 `msg_id` / `event_id` 留空（两者与 `is_wakeup` 互斥）。
+- 单图文混合走 `msg_type=7`；纯媒体消息的正文为空格 `" "`。
+- 只有 `[CQ:active]`、没有其他内容时，会发送一个内容为空格的召回请求。
 - `[CQ:file]` 支持本地路径、HTTP(S) URL、base64 与可选 `file_name`。
-- 富媒体上传或最终发送出现超时时，会按实现中的重试策略处理。
+- 富媒体上传或最终发送出现超时时，按 `postC2CWakeupMessageWithRetry` 的策略重试（最多 3 次，间隔 3 秒）。
+- `self_id` 取配置中的机器人 AppID。
 
 ## Action 返回
 
@@ -64,7 +67,9 @@ Handler 完成同步处理后返回：
 | `status` | `success` 或 `failed`。 |
 | `message_id` | QQ 返回的消息 ID，失败或无返回时可能为空。 |
 | `error_msg` | 失败原因，成功时通常为空。 |
-| `user_id` | 当前实现固定为 `0`，真实字符串 ID 在 `real_user_id`。 |
+| `user_id` | 当前实现固定为 `0`（`int64`，兼容 NoticeEvent 反序列化），真实字符串 ID 在 `real_user_id`；这与请求参数 `user_id` 可传虚拟数字 ID 是两件事。 |
+| `self_id` | 机器人 AppID。 |
+| `time` | 通知产生时间（Unix 秒）。 |
 
 ## NoneBot2 示例
 

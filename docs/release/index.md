@@ -4,7 +4,7 @@
 
 | 版本 | 主题 |
 |------|------|
-| [Release016](#release016) | 分层架构接入主链 · 群管理三接口对齐官方 |
+| [Release016](#release016) | 分层架构接入主链 · 素材管理 / @全员 / 单聊卡片 · CQ 最大兼容 |
 | [Release015](#release015) | 富媒体上传重试 · 群成员管理与指令面板 |
 | [Release014](#release014) | `[CQ:wakeup]` C2C 互动召回 · 路径与去重修复 |
 | [Release013](#release013) | `[CQ:reply]` REFIDX · `set_group` 系列统一 |
@@ -19,9 +19,15 @@
 ## Release016
 
 - 生产主链接入 `internal/` + `adapter/` 分层架构，按 `arch_mode` 逐请求切换（`new` 默认，`legacy` 可一键回退）。
-- 群管理三接口（`get_group_join_request_list` / `get_group_bot_state` / 审批策略）按官方现文档对齐字段（`cursor` / `list` 等）；入站事件按官方 2026-09 新增字段富化。
-- 富媒体上传阈值对齐官方：5MB 直传上限 + 自动分片。
-- 修复：`[CQ:keyboard]` 按钮权限 `permission.type=0` 原样发出、`auto_approved` 由对象误判为 bool、错误码表补 16 项。
+- 群管理三接口（`get_group_join_request_list` / `get_group_bot_state` / 审批策略）按官方现文档对齐字段（`cursor` / `list` 等）。
+- 入站事件按官方 2026-09-16 新增字段富化：新增 `message_type` / `ark_data` / `msg_elements` / 附件 `voice_wav_url`、`asr_refer_text`，上报为 `[CQ:ark,ark_type=..,ark_name=..,prompt=..]`、`[CQ:record,file=..,asr=..]`、`[CQ:reply,msg_idx=..]` 三种入站形态（出站解析会剥离，`[CQ:record]` 的 `,asr=` 不污染 URL）。
+- 素材管理三接口（官方 2026-10-21）：`upload_media_image` / `get_media_image_list` / `delete_media_image`，链路 `prepare` → 预签名 PUT → `complete`，返回 `qqbot-media://image/v1/<token>` 并在 Markdown 图片与 keyboard 按钮图片字段原样透传；单图 ≤10MB（10,000,000 字节）、单机器人 100 张、自最后引用起 90 天滑动过期（`ttl=7776000`）。
+- 群聊 @全员（官方 2026-10-26）：`[CQ:at,qq=all]`（别名 `qq=everyone`）与字面 `<qqbot-at-everyone />` 归一为官方标签；每群每自然日 1 次本地限流（`enable_at_everyone_limit` 默认 `true`，固定按 `+08:00` 切日，计数落 idmap config 表 `at_everyone`），同日第 2 次与单聊带 @全员 均回 `1400`。
+- 图文卡片支持单聊（官方 2026-10-28）：`[CQ:card]` 群聊 / 单聊同构（`msg_type=8`），`title` 1~50 字符、`description` 1~200 字符、`url` / `pic_url` 必须 `https://` 且 ≤1024 字节；缺字段、本地路径或 `http` 一律整条 `1400`（旧的「本地路径自动图床上传」「非法卡片跳过」口径移除）。
+- CQ 码解析最大兼容（2026-11）：空白容错全量适配（段名前、参数间、`=` 两侧允许空白，值内部空格保留）+ 全路径统一并集口径（段名与参数键大小写不敏感、任意键序、尾部附加键不再污染值、stream 冒号/等号双语法、段名字符集统一 `[A-Za-z0-9_]`）。
+- 富媒体上传阈值对齐官方：`file_data` 直传上限 5MB（保守取 5,000,000 字节），超限自动改走分片上传。
+- 修复：`[CQ:keyboard]` 按钮权限 `permission.type=0` 原样发出、`auto_approved` 由对象误判为 bool、错误码表补 16 项（`10000`/`850018`/`850019`/`850026`/`850027`/`850031`/`40093001`/`40093002`/`40061001`/`40062003`/`40064004`/`50065001`/`100001`/`100007`/`100016` 等）、禁言时长超过 30 天按 30 天截断。
+- 官方口径再对齐：模板载荷废弃——`custom_template_id` / `template_id` 自动注入移除，`native_md` 不再改变载荷形态；`[CQ:music]` 改普通文本（`msg_type=0`）+ 键盘按钮，不再发送空 `msg_type=2` 载荷。
 
 上游变更：[CHANGELOG_v016.md](https://github.com/Te-River/Gensokyo-NewQQ/blob/main/release_log/CHANGELOG_v016.md)
 
