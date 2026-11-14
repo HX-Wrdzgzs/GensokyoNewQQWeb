@@ -2,6 +2,9 @@
 
 > 官方文档：素材管理页（页脚 2026-10-21）。Gensokyo 扩展 API，三个 action 共用同一条上传链路：`prepare` → 预签名 PUT → `complete`。
 
+> [!WARNING]
+> **适用版本：仅 Rust 重构版。** 本页三个 action（`upload_media_image` / `get_media_image_list` / `delete_media_image`）只在 Rust 重构版注册（`crates/gensokyo-actions/src/register.rs:315,166,94`）；**Go 生产版没有这些 action**——素材上传链在 Go 中仅供 Markdown/keyboard 图片消费点内部调用，`handlers/media_asset.go:18-19` 明确「本文件不注册 OneBot action」。在 Go 版调用这三个 action 会得到未知 action 回执。
+
 素材管理用于把图片上传到 QQ 官方素材库，换取 `qqbot-media://image/v1/<token>` 引用。该引用可直接写进 Markdown 图片语法与 keyboard 按钮图片字段，Gensokyo **原样透传**（不下载、不转存）。
 
 | Action | 说明 |
@@ -12,13 +15,13 @@
 
 ## 通用限制
 
-| 项目 | 限制 |
-|------|------|
-| 单图大小 | ≤ 10MB（按十进制 **10,000,000 字节**） |
-| 图片格式 | `png` / `jpeg`（`jpg`）/ `gif` / `webp`，扩展名与 `content_type` 必须一致 |
-| 配额 | 单机器人最多 **100 张** |
-| 有效期 | 自最后一次被消息引用起 **90 天**滑动过期（`ttl=7776000` 秒） |
-| 预签名上传任务 | `upload_id` 与预签名 URL 均为 4 小时有效 |
+| 项目 | 限制 | 适用版本 |
+|------|------|----------|
+| 单图大小 | ≤ 10MB（按十进制 **10,000,000 字节**；Rust 本地校验常量 `MAX_MEDIA_IMAGE_BYTES = 10_000_000`，`crates/gensokyo-qq/src/dto/media_image.rs:12-14`） | 两侧同受官方限制；本地校验常量在 Rust |
+| 图片格式 | `png` / `jpeg`（`jpg`）/ `gif` / `webp`，扩展名与 `content_type` 必须一致 | 官方限制，两侧一致 |
+| 配额 | 单机器人最多 **100 张** | 官方限制，两侧一致 |
+| 有效期 | 自最后一次被消息引用起 **90 天**滑动过期（`ttl=7776000` 秒；Rust 侧 `crates/gensokyo-actions/src/media_image.rs:57,674`，Go 内部链 `botgo/dto/media_image.go:79` 同值） | 官方限制，两侧一致 |
+| 预签名上传任务 | `upload_id` 与预签名 URL 均为 4 小时有效 | 官方限制，两侧一致 |
 
 `file` 入参支持以下形式，**不支持 `http(s)://` 链接**（上传前需在本地计算 md5 与 sha1，远端内容无法在不下载的前提下满足）：
 
@@ -165,12 +168,14 @@
 
 ## 错误码
 
-| retcode | 场景 |
-|---------|------|
-| `0` | 成功。 |
-| `1400` | 参数或本地校验失败：`file` 为空、`http(s)` 链接、base64/data URI 解码失败、文件名无法推导 `content_type`、扩展名与 `content_type` 不一致、超过 10MB、`image_id` 为空。 |
-| `1404` | 本地文件不可读（不存在、是目录、读取失败）。 |
-| `1401` | 上游或网络失败（prepare / PUT / complete / list / delete 出错、OpenAPI v2 未初始化）。 |
+以下 retcode 分支的实现与锚点均在 Rust 重构版（Go 无这三个 action，不适用）：
+
+| retcode | 场景 | 适用版本 |
+|---------|------|----------|
+| `0` | 成功。 | 仅 Rust 重构版 |
+| `1400` | 参数或本地校验失败：`file` 为空、`http(s)` 链接、base64/data URI 解码失败、文件名无法推导 `content_type`、扩展名与 `content_type` 不一致、超过 10MB、`image_id` 为空。（`crates/gensokyo-actions/src/media_image.rs:19,225-235`） | 仅 Rust 重构版 |
+| `1404` | 本地文件不可读（不存在、是目录、读取失败）。（Rust 读取失败在 `message` 中带 `(1404)` 标注，`crates/gensokyo-actions/src/media_image.rs:154-156`） | 仅 Rust 重构版 |
+| `1401` | 上游或网络失败（prepare / PUT / complete / list / delete 出错、OpenAPI v2 未初始化）。（官方业务错误码 → `RETCODE_MEDIA_UPSTREAM = 1401`，`crates/gensokyo-actions/src/media_image.rs:20,48,229-234`） | 仅 Rust 重构版 |
 
 上游错误会以「中文说明(官方码)」的形式出现在 `message` 中，官方码原值保留，便于调用方自行判定：
 

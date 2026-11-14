@@ -40,6 +40,9 @@
 | `data.message` | string | 头像直链 URL，格式：`https://q.qlogo.cn/qqapp/{appid}/{openid}/640` |
 | `data.user_id` | int64 | 传入的虚拟用户 ID（原样返回） |
 
+> [!IMPORTANT]
+> 头像直链在 **`data.message`** 里（Go `handlers/get_avatar.go:15-18,59-62`：`AvatarData.Message` 承载 URL 并嵌在 `data` 字段内，`get_avatar.go:21`）。顶层的 `message` 是 OneBot 状态字段，恒为空串（`get_avatar.go:22-23,63`）——**不要**从 `result["message"]` 取头像。
+
 ## 工作原理
 
 1. 接收虚拟 `user_id`
@@ -57,6 +60,7 @@ avatar = on_command("头像")
 @avatar.handle()
 async def _(bot: Bot, event: Event):
     result = await bot.call_api("get_avatar", user_id=event.user_id)
-    avatar_url = result["message"]
+    # 头像直链在 data.message，顶层 message 只是状态字段（恒为空串）
+    avatar_url = result["data"]["message"]
     await avatar.finish(Message(f"[CQ:image,file={avatar_url}]"))
 ```
