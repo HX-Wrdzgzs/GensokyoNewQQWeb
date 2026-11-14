@@ -1,0 +1,61 @@
+/**
+ * CQ 码类别配色 —— Playground 卡片徽标、GenericPreview 图标、UnknownPreview 标注共用。
+ * 变量在亮色下取可读的深色，暗色下换成浅色；背景与描边同源，避免两处定义漂移。
+ * 使用方：class="cq-tone-<kind>"，kind 取 media / content / control / action / passthrough / unknown。
+ */
+
+.cq-tone-media {
+  --cq-tone: #0369a1;
+  --cq-tone-bg: rgba(14, 165, 233, 0.13);
+  --cq-tone-border: rgba(14, 165, 233, 0.3);
+}
+
+.cq-tone-content {
+  --cq-tone: #7e22ce;
+  --cq-tone-bg: rgba(168, 85, 247, 0.12);
+  --cq-tone-border: rgba(168, 85, 247, 0.28);
+}
+
+.cq-tone-control {
+  --cq-tone: #b45309;
+  --cq-tone-bg: rgba(245, 158, 11, 0.14);
+  --cq-tone-border: rgba(245, 158, 11, 0.3);
+}
+
+.cq-tone-action {
+  --cq-tone: #b91c1c;
+  --cq-tone-bg: rgba(239, 68, 68, 0.1);
+  --cq-tone-border: rgba(239, 68, 68, 0.26);
+}
+
+.cq-tone-passthrough {
+  --cq-tone: var(--vp-c-text-2);
+  --cq-tone-bg: var(--vp-c-bg-mute);
+  --cq-tone-border: var(--vp-c-divider);
+}
+
+.cq-tone-unknown {
+  --cq-tone: #c2410c;
+  --cq-tone-bg: rgba(249, 115, 22, 0.14);
+  --cq-tone-border: rgba(249, 115, 22, 0.32);
+}
+
+.dark .cq-tone-media {
+  --cq-tone: #7dd3fc;
+}
+
+.dark .cq-tone-content {
+  --cq-tone: #d8b4fe;
+}
+
+.dark .cq-tone-control {
+  --cq-tone: #fcd34d;
+}
+
+.dark .cq-tone-action {
+  --cq-tone: #fca5a5;
+}
+
+.dark .cq-tone-unknown {
+  --cq-tone: #fdba74;
+}
