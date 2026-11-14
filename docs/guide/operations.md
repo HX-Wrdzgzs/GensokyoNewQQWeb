@@ -2,6 +2,14 @@
 
 Gensokyo-NewQQ 内置了多项运维功能，方便在生产环境中监控和管理服务。
 
+## 鉴权前提：健康端点并非「无需鉴权」
+
+`/healthz`、`/readyz`、`/metrics`、`/updateport`、`/delpic`、`/uploadpic*` 等端点都挂在同一个 `server.UploadAuthMiddleware()` 下（`main.go:516`、`:518-524`）：
+
+- 中间件校验的是配置项 `http_access_token`（`server/uploadpic.go:37-51`）：请求头 `Authorization: Bearer <token>` 或查询参数 `?access_token=<token>` 任选其一，两者都不匹配时回 **`403 {"error":"鉴权失败"}`**。
+- **`http_access_token` 为空时中间件直接放行**——这就是「健康端点无需鉴权」这一说法的由来，但它只在没配 token 的部署里成立。
+- 因此配了 `http_access_token` 之后，Kubernetes 探针与 Prometheus 抓取都必须带上 token，否则 `livenessProbe` 会因 403 反复重启进程。
+
 ## 健康检查端点
 
 服务启动后会自动注册以下端点：
@@ -24,21 +32,24 @@ Gensokyo-NewQQ 内置了多项运维功能，方便在生产环境中监控和�
 ```yaml
 livenessProbe:
   httpGet:
-    path: /healthz
+    path: /healthz?access_token=<你的 http_access_token>   # 未配置 token 时可省略查询参数
     port: 15630
+    httpHeaders:
+      - name: Authorization
+        value: Bearer <你的 http_access_token>
   initialDelaySeconds: 10
   periodSeconds: 30
 ```
 
 ### `/readyz`
 
-就绪探针，返回内容与 `/healthz` 一致，可用于 Kubernetes 的 `readinessProbe`。
+就绪探针，返回内容与 `/healthz` 一致（同用 `HealthzHandler`，`main.go:520-521`），可用于 Kubernetes 的 `readinessProbe`。
 
 ## Prometheus 监控指标
 
 Gensokyo-NewQQ 提供了原生的 Prometheus 指标端点，无需额外安装 exporter。
 
-访问 `http://你的地址:端口/metrics` 查看指标。
+访问 `http://你的地址:端口/metrics` 查看指标；配了 `http_access_token` 时同样需要带 token（`main.go:522`）。
 
 ### 暴露的指标
 
@@ -58,6 +69,9 @@ scrape_configs:
   - job_name: 'gensokyo'
     static_configs:
       - targets: ['你的IP:15630']
+    # 配了 http_access_token 时，抓取需要带鉴权：
+    # authorization:
+    #   credentials: <你的 http_access_token>
 ```
 
 ## 慢事件检测
@@ -70,7 +84,15 @@ scrape_configs:
 
 ## 管理员快捷指令
 
-Master 权限用户向 Bot 发送私聊消息时可触发：
+指令前缀来自配置（`settings.status_prefix` / `settings.broadcast_prefix`），**模板默认值是 `/gskstatus` 与 `/gskbroadcast`**（`template/config_template.go:221-222`），不是早期文档写的 `-status` / `-broadcast`。
 
-- **`-status`** — 回显系统运行状态面板（Uptime、内存、协程数、慢事件数、消息 IO 统计）
-- **`-broadcast <内容>`** — 向 Bot 加入的已知群聊批量发送通知
+| 指令 | 模板默认前缀 | 作用 | 权限 |
+|---|---|---|---|
+| 运行状态 | `/gskstatus` | 回显状态面板：`Version`、`Recv/Send`（累计收 / 发消息数）、`Slow/Error`（慢事件 / 错误数）、`Mem`（`Alloc` 换算 MB）+ goroutine 数、`Uptime` | **不做 `master_id` 门控**：消息匹配前缀即回状态（`Processor/Processor.go:630-631`） |
+| 群广播 | `/gskbroadcast <内容>` | 向 Bot 已知的群聊批量发送通知 | **需 `master_id` 门控**：不在 master 名单内时回「您没有权限执行广播指令，请在 config.yml 的 master_id 中配置当前用户。」（`Processor/Processor.go:635-637`） |
+
+补充口径：
+
+- 前缀设为 `""`、`/disabled` 或 `/disabled...` 可停用对应指令（`template/config_template.go:221-222` 注释）。
+- 广播内容为空时会回用法提示（`Processor/Processor.go:640-643`）。
+- 状态面板内容由 `buildStatusText()` 组装（`Processor/Processor.go:687`）。由于 `/gskstatus` 不受 master 门控，公网机器人如不希望任意用户查看运行状态，应把 `status_prefix` 置空禁用。

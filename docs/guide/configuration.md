@@ -145,6 +145,61 @@ settings:
 
 `oss_type` 同一时间只应选择一个。第三方免费上传后端可能随服务策略变化，生产环境优先使用自己可控的对象存储。Cookie、SecretKey 和授权 Token 不应出现在仓库、前端页面或公开日志中。
 
+## 出站 URL 转换与二维码
+
+出站文本里的链接由 `handlers/message_parser.go` 的 `transformMessageTextUrl()`（`:1749-1793`）统一处理：`transfer_url` 开启时用 xurls 扫描 URL，再按配置改写或剥离。
+
+| 字段 | 模板默认 | 作用 |
+|---|---|---|
+| `transfer_url` | `true` | 是否处理出站 URL；关闭后按原文自理发送 |
+| `visible_ip` | `false` | `server_dir` 是 IP 时，是否以 IP 形式发出 URL |
+| `url_to_qrimage` | `false` | 把 URL 转成二维码图片单独发出，需同时 `transfer_url: true` 且 `visible_ip: true` |
+| `qr_size` | `200` | 二维码尺寸，单位像素（`handlers/qrcode_real.go:19` 读取） |
+
+> [!CAUTION]
+> **升级须知（`transfer_url` 模板默认开启）**
+>
+> - 沿用自动生成的新版模板升级后，机器人发出的每一条 URL **都会被改写**，不再是原文。
+> - 当 `server_dir` 填的是 **IP** 且 `visible_ip: false`（即模板默认组合）时，出站文本里的 URL 会被**整段替换为空字符串**（`message_parser.go:1760-1761`）——链接直接从消息里消失。三种解法：把 `server_dir` 换成自己的域名、显式设 `visible_ip: true`、或显式设 `transfer_url: false`。
+> - 非 lotus 模式下改写结果是本机短链 `GetBaseURL() + "/url/" + {code}`（`message_parser.go:1786-1788`），配合 302 跳转。这类域名的 `/url` 与 `/image` 路径**必须先在 QQ 开放平台后台报备并通过校验**（配好 `crt` / `key`），否则消息里的链接会被官方拦截。
+> - 不想让机器人动 URL：显式写 `transfer_url: false`（只关闭 URL 改写，图片 / 语音等媒体链不受影响）。
+> - `transfer_url` / `visible_ip` / `url_to_qrimage` / `qr_size` 都不在「不支持热重载」清单（`config/config.go:38-48`）中，改完下一个出站请求即生效。
+
+## 分层架构开关 `arch_mode`
+
+结构体字段 `ArchMode`（`structs/structs.go:150-151`，YAML 标签 `arch_mode`），配置模板默认 `new`（`template/config_template.go:183`）。它决定生产主链走新分层实现还是旧链路：
+
+| 取值 | 语义 |
+|---|---|
+| `new`（默认） | 走 `internal/` + `adapter/` 分层新链 |
+| `shadow` | 新旧链并行，差异仅日志上报，行为仍走 legacy |
+| `legacy` | 全走旧链，行为零变化，**一键回退** |
+
+- 访问器 `config.GetArchMode()`（`config/config.go:2870`）**逐请求读取**，热重载即时生效；不在重启字段清单中。
+- 取值大小写敏感，只接受 `legacy|shadow|new`；空值按默认处理，非法值 warn 一次后回退 `new`（`config/config.go:2881-2884`，警告文案含「已回退 new」）。
+- 六个接缝及其桥文件：出站 `handlers/outbound_bridge.go`、入站 `Processor/inbound_bridge.go`、action `callapi/dispatch_bridge.go`、state `handlers/state_bridge.go`、config `internal/infrastructure/config/bootstrap.go`、media `handlers/media_bridge.go`。任一接缝的新链未注入或失败时自动落回 legacy。
+- 这个开关**与 Rust 重构无关**：它是 Go 主链内部在 legacy 目录与分层实现之间的切换；Rust 版是另一个独立可执行程序，见 [Rust 重构概览](/rust/overview)。
+
+## Lotus 多进程模式
+
+`lotus` 让一个实例复用另一个「主节点」的图床与 idmap 服务，适合同一机器人在多台服务器运行、或内网需要发 base64 图片的场景（`template/config_template.go:59-64`）：
+
+| 字段 | 默认 | 作用 |
+|---|---|---|
+| `lotus` | `false` | 为 `true` 时连接另一个 `lotus: false` 的 Gensokyo，使用它的图床与 idmaps 服务 |
+| `lotus_password` | `""` | 访问主节点的鉴权密码，两侧必须一致 |
+| `lotus_without_idmaps` | `false` | 只走 URL / 图片上传 / 语音，ID 转换仍由本地维护 |
+| `lotus_without_uploadpic` | `false` | 只转换 ID，不做图片上传 |
+| `lotus_grpc` | `false` | 实验特性：用 gRPC 连接主节点以提高性能 |
+| `lotus_grpc_port` | `50051` | gRPC 端口，连接方与被连接方需一致并放通防火墙 |
+| `server_dir` | `<YOUR_SERVER_DIR>` | 主节点地址（不带 http 头的域名或 IP；提供图床服务需带端口） |
+| `port` | `"15630"` | idmaps 与图床对外开放的端口；连接另一个 Gensokyo 时也是链接端口 |
+| `backup_port` | `"5200"` | `lotus: true` 时本机 HTTP 服务改用它（`main.go:489-493`），WebUI 需按该端口访问 |
+
+- 需要发 base64 图片时，`server_dir` 必须是公网可达地址并开放对应 `port`。
+- `lotus: true` 且 `transfer_url: true` 时，出站 URL 走主节点侧的短链生成逻辑（`message_parser.go:1779-1783`）。
+- 需重启的字段：`lotus`、`lotus_password`、`lotus_without_idmaps`、`server_dir`、`port`、`backup_port` 都在「不支持热重载」清单里（`config/config.go:38-48`），改完需完整重启；`lotus_without_uploadpic`、`lotus_grpc`、`lotus_grpc_port` 不在该清单中。
+
 ## WebUI
 
 `disable_webui` 控制是否启用 WebUI，`server_user_name` 与 `server_user_password` 用于登录。默认或弱密码只适合本地首次启动，部署前必须修改。

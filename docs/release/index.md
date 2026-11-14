@@ -4,7 +4,7 @@
 
 | 版本 | 主题 |
 |------|------|
-| [Release016](#release016) | 分层架构接入主链 · 素材管理 / @全员 / 单聊卡片 · CQ 最大兼容 |
+| [Release016](#release016) | **未封版 · 在飞**——分层架构接入主链 · 素材管理 / @全员 / 单聊卡片 · CQ 最大兼容 |
 | [Release015](#release015) | 富媒体上传重试 · 群成员管理与指令面板 |
 | [Release014](#release014) | `[CQ:wakeup]` C2C 互动召回 · 路径与去重修复 |
 | [Release013](#release013) | `[CQ:reply]` REFIDX · `set_group` 系列统一 |
@@ -17,6 +17,11 @@
 ---
 
 ## Release016
+
+> [!WARNING]
+> **v016 尚未封版、当前在飞**：主仓库 `release_log/CHANGELOG_v016.md` 顶部**没有** `> 🚀 **已封版**` 那一行（对比 `CHANGELOG_v015.md:3` 有），仓库 tag 也只打到 `Release015`、无 `Release016`；同时下一版 `CHANGELOG_v017.md` 尚未创建。因此下面列的是**自 Release015 以来累积到当前 `main` 的在飞变更**，仍在按请求继续追加，发布说明以封版当天的 changelog 全文为准。
+>
+> 本仓封版惯例：changelog 定稿 → 顶部加 `> 🚀 **已封版**：ReleaseNNN 已封版，后续变更请记录到 CHANGELOG_vNNN+1.md` → 新建下一版 stub → 打轻量 tag `ReleaseNNN` 并推送 → 跑 `.\build.ps1`。
 
 - 生产主链接入 `internal/` + `adapter/` 分层架构，按 `arch_mode` 逐请求切换（`new` 默认，`legacy` 可一键回退）。
 - 群管理三接口（`get_group_join_request_list` / `get_group_bot_state` / 审批策略）按官方现文档对齐字段（`cursor` / `list` 等）。
