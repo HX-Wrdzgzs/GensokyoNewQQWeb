@@ -32,7 +32,7 @@
 - `[CQ:active]`（裸标记）→ 识别为主动标记，从文本中移除。
 - `[CQ:active,type=xxx,sub_type=yyy]`（带参数）→ 同上，且 `type` 写入 `foundItems["active_type"]`，`sub_type` 写入 `foundItems["active_sub_type"]`。
 - 数组消息段的 `"type":"active"` 同样支持。
-- 解析后会在 `foundItems` 中产生 `active`、`active_type` 和 `active_sub_type` 三个控制字段。
+- 解析后会在 `foundItems` 中产生 `active`、`active_type` 和 `active_sub_type` 三个控制字段（实现：`handlers/cqcode.go:145-172` 的 `ProcessCQActive`，带参分支写 `active_type` / `active_sub_type`，`:164` 与 `:170` 均写 `active`）。
 
 ## 发送行为
 
@@ -77,7 +77,7 @@ await bot.call_api(
 ## 与普通发送 Action 的区别
 
 - `send_private_msg_wakeup` 会明确消费 active 标记，并强制设置 `is_wakeup=true`。
-- 普通 `send_private_msg`、`send_group_msg` 不应依赖 `[CQ:active]` 切换发送通道。
+- 普通 `send_private_msg`、`send_group_msg` **同样会消费该标记**：两者在发送前检查 `foundItems["active"]`，命中即清空 `messageID` 与 `eventID`，强制走主动推送（`handlers/send_group_msg.go:312-316`、`handlers/send_private_msg.go:351-355`；新链同一语义见 `handlers/outbound_bridge.go:170-172` 置 `message.ModeActive`）。标记的产生点是 `handlers/cqcode.go:145-172` 的 `ProcessCQActive`——裸码与带参形态都会写入 `active`，带参时额外写入 `active_type` / `active_sub_type`。
 - 需要 C2C 互动召回时，应直接调用 [`send_private_msg_wakeup`](../../api/扩展api/扩展api-send_private_msg_wakeup.md)。
 
 ## 返回结果

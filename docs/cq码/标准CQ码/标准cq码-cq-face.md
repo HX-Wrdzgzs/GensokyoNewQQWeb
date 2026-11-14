@@ -1,6 +1,6 @@
 # [CQ:face]
 
-> **开发中**：本 CQ 码目前正在开发中，暂时无法正常使用。
+> ⚠️ **暂不可用**：QQ Bot API 没有独立的表情消息段，Gensokyo（Go 主线）入站**不产出** `[CQ:face]` 段（`Processor/` 全目录无 `CQ:face` 生成点），出站也**不解析**该码——含 `[CQ:face,...]` 的正文按文本透传发出。
 
 ## 用途
 
@@ -66,3 +66,4 @@ QQ 消息中的表情在 QQ Bot API 中以 Unicode 字符形式包含在 `Conten
 
 - QQ Bot API（官方 API）与 go-cqhttp 等第三方实现不同，不支持独立的表情消息段。
 - 如需从插件发送表情，请使用 Unicode emoji 字符替代。
+- 注：Rust 重构版码表 `crates/gensokyo-protocol/src/cqcode.rs:721-726` 把 `face` 标记为 `inbound: true` / `outbound: true`，这是元数据层面的登记，与 Go 的口径差异已在 parity 跟踪（`reports/refactor/17-go-rust-parity.md`）。**勿据此认为重构版会收到 `[CQ:face]` 段**。

@@ -32,7 +32,7 @@
 
 ## 校验与失败行为
 
-所有构造点共用同一套校验（`handlers/card_payload.go` 的 `buildTuwenCard`），任一项不通过即返回 `retcode=1400`，**整条消息不发送**：
+卡片载荷在解析阶段只做「参数收集 → JSON 编码」，三条解析链各有一个构造点（字符串 legacy 管道 `handlers/cqcode_pipeline.go:115` 的 `processCQCardPipeline`、cqparse 新解析器 `handlers/cqparse/handlers_content.go:115` 的 `resolveCard`、数组消息段 `handlers/message_parser.go:1023-1032`），最终统一由 `handlers/outbound_bridge.go:1000-1025` 的 `applyGroupCard`（新链）与 `handlers/send_group_msg.go:644`、`:756`（legacy 链）组装成 `card{type:"tuwen"}`。必填四项任一为空或格式非法，官方接口以 `retcode=1400`（参数不合法）拒绝，**整条消息不发送**：
 
 | 失败场景 | 结果 |
 |----------|------|
@@ -43,7 +43,7 @@
 | `url` / `pic_url` 缺失 | 1400 |
 | `url` / `pic_url` 不是 `https://`（含 `http://` 与本地路径） | 1400 |
 | `url` / `pic_url` 超过 1024 **字节** | 1400 |
-| `[CQ:card]` 的 JSON 参数解析失败 | 1400 |
+| `[CQ:card]` 的 JSON 参数解析失败 | 卡片载荷无法反序列化时该卡片被丢弃、正文照常发送（`handlers/outbound_bridge.go:1006-1008`） |
 
 > 卡片与 @全员 同现（markdown 未优先）同样回 `1400`：卡片会清空正文，@全员 标签无法承载。markdown 与卡片同现时 markdown 优先，卡片被丢弃且不参与校验。
 
