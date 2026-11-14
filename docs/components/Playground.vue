@@ -1,32 +1,17 @@
 <script setup>
 import { ref, computed } from 'vue'
+// 解析引擎唯一入口：站内不再自带第二套 CQ 码解析实现（语义与后端对齐，见模块头 file:line 依据）
+import { parseCq } from '../.vitepress/cq/parser.js'
 
 const cqInput = ref('[CQ:at,qq=10001] [CQ:face,id=14] 你好，世界！')
-const simulateOutput = computed(() => {
-  const cqRegex = /\[CQ:([a-z]+),([^\]]+)\]/gi
-  let match
-  const parts = []
-  let lastIndex = 0
-
-  while ((match = cqRegex.exec(cqInput.value)) !== null) {
-    if (match.index > lastIndex) {
-      parts.push({ type: 'text', content: cqInput.value.slice(lastIndex, match.index) })
-    }
-    const type = match[1]
-    const paramsStr = match[2]
-    const params = {}
-    paramsStr.split(',').forEach(p => {
-      const [k, v] = p.split('=')
-      if (k) params[k] = v || ''
-    })
-    parts.push({ type: 'cq', cqType: type, params })
-    lastIndex = cqRegex.lastIndex
-  }
-  if (lastIndex < cqInput.value.length) {
-    parts.push({ type: 'text', content: cqInput.value.slice(lastIndex) })
-  }
-  return parts
-})
+// UI 展示口径暂不变（W1-b/W1-c 再接段结构），此处只把后端段序列映射为既有模板字段
+const simulateOutput = computed(() =>
+  parseCq(cqInput.value).tokens.map((token) =>
+    token.type === 'text'
+      ? { type: 'text', content: token.raw }
+      : { type: 'cq', cqType: token.name, params: token.params }
+  )
+)
 </script>
 
 <template>
