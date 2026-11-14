@@ -9,7 +9,7 @@
 | `[CQ:wakeup]` | `私聊 (C2C)` | C2C 互动召回（唤醒）消息标记，`userid` 指定目标用户（OpenID 或虚拟 ID）。 | [查看](./扩展CQ码/扩展cq码-cq-wakeup.md) |
 | `[CQ:remove]` | `q群 (Group Chat)` | 撤回指定群消息（出站单向，需 `user_id` + `msg_id`）。 | [查看](./扩展CQ码/扩展cq码-cq-remove.md) |
 | `[CQ:at]` | `q群 (Group Chat)` | @ 标签扩展行为：纯文本出站转为 `@用户名 `，Markdown 出站转为 `<qqbot-at-user>` 标签。 | [查看](./扩展CQ码/扩展cq码-cq-at.md) |
-| `[CQ:card]` | `q群 (Group Chat)` / `私聊 (C2C)` | 图文卡片消息（`msg_type=8`），参数顺序无关；`title` / `description` / `url` / `pic_url` **四字段必填**，缺任一项整条消息回 `1400`。 | [查看](./扩展CQ码/扩展cq码-cq-card.md) |
+| `[CQ:card]` | **Go 版**仅 `q群 (Group Chat)`；**Rust 重构版**群聊与单聊同构（`私聊 (C2C)` 亦可） | 图文卡片消息（`msg_type=8`），参数顺序无关；官方要求 `title` / `desc` / `pic` / `url` **四字段必填**，但 **Rust 重构版**做本地校验（任一缺失或非法整条消息回 `1400`、整条不发），**Go 版**不做四字段预校验，`pic` / `url` 缺失时本地丢弃卡片、正文照常发送。别名 `description` / `pic_url` 仅 Rust 重构版识别。 | [查看](./扩展CQ码/扩展cq码-cq-card.md) |
 | `[CQ:input_notify]` | `私聊 (C2C)` | 输入状态通知（`msg_type=6`），正文发送前先展示「正在输入」；字符串、数组消息段与 cqparse 三种输入形态均支持。 | [查看](./扩展CQ码/扩展cq码-cq-input_notify.md) |
 | `[CQ:stream]` | `私聊 (C2C)` | 流式消息，逐片展示实现打字机效果（start→mid→finish）。 | [查看](./扩展CQ码/扩展cq码-cq-stream.md) |
 | `[CQ:keyboard]` | `q群 (Group Chat)` / `私聊 (C2C)` | 文本消息附加内嵌键盘（按钮消息）。⚠️ 按钮仅在 Markdown 消息下渲染，建议与 `[CQ:markdown]` 配合。 | [查看](./扩展CQ码/扩展cq码-cq-keyboard.md) |

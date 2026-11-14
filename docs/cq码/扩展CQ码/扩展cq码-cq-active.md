@@ -33,6 +33,9 @@
 - `[CQ:active,type=xxx,sub_type=yyy]`（带参数）→ 同上，且 `type` 写入 `foundItems["active_type"]`，`sub_type` 写入 `foundItems["active_sub_type"]`。
 - 数组消息段的 `"type":"active"` 同样支持。
 - 解析后会在 `foundItems` 中产生 `active`、`active_type` 和 `active_sub_type` 三个控制字段（实现：`handlers/cqcode.go:145-172` 的 `ProcessCQActive`，带参分支写 `active_type` / `active_sub_type`，`:164` 与 `:170` 均写 `active`）。
+- **识别严格度两侧不同**：
+  - **Go 版**只识别**精确小写**的 `[CQ:active]` —— legacy 侧是字面量正则（`handlers/cqcode.go:147`、`:168`）；cqparse 侧段名字符集限定为 `[a-z_]`，段名前后带空白会让整码退化为普通文本（`handlers/cqparse/tokenize.go:54`、`:73-74`）。所以 `[CQ:active ]`、`[CQ:ACTIVE]` 在 Go 侧不生效。
+  - **Rust 重构版**段名大小写不敏感并归一为小写，且容忍段名前后空白（`crates/gensokyo-protocol/src/cqcode.rs` 的 `parse_body`），上述宽松写法同样命中。
 
 ## 发送行为
 
@@ -42,7 +45,7 @@
 2. 清空缓存的 `msg_id`（如果有），强制走主动推送通道。
 3. 清空 `event_id`（如果有），避免消耗被动回复次数。
 4. `send_private_msg_wakeup` 遍历消息内容时会跳过 `active` 相关字段，不会把它们错误地当作图片、语音或其他富媒体类型发送。
-5. 消息只包含 `[CQ:active]`、没有文本或其他媒体时，召回 Action 会发送一个内容为空格的唤醒请求，以确保 QQ 侧仍能收到互动召回。
+5. 消息只包含 `[CQ:active]`、没有文本或其他媒体时：**Go 版**的召回 Action 会补发一条内容为**单个空格 `" "`** 的唤醒请求，以确保 QQ 侧仍能收到互动召回；**Rust 重构版**对空 message 直接回 `1400`，不补空格唤醒（分侧细节见 [`[CQ:wakeup]`](./扩展cq码-cq-wakeup.md)）。
 
 ## 使用示例
 
@@ -98,5 +101,5 @@ Action 处理结束后返回标准成功响应；实际 QQ 发送结果会另行
 
 ## 注意
 
-- 裸 `[CQ:active]`（无参数）自 2026-11 的 CQ 码空白容错适配起可被文本正则识别，宽松写法（`[CQ:active ]`、`[CQ:active , ]`、`[CQ:ACTIVE]`）同样命中，识别后从正文移除。
+- 宽松写法是否命中要分侧看：**Go 版**仅识别精确小写 `[CQ:active]`，`[CQ:active ]`、`[CQ:active , ]`、`[CQ:ACTIVE]` 都退化为正文文本；**Rust 重构版**段名大小写不敏感且容忍前后空白，这三种写法同样命中（锚点见上方「解析行为」）。
 - `[CQ:active]` 只切换发送通道，不改变消息内容；需要 C2C 互动召回（`is_wakeup=true`）时，请直接使用 [`send_private_msg_wakeup`](../../api/扩展api/扩展api-send_private_msg_wakeup.md)。

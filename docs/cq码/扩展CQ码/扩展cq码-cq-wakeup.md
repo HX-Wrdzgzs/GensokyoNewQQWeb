@@ -41,6 +41,8 @@
 
 > ⚠️ 群聊消息（`send_group_msg`）中出现的 `[CQ:wakeup]` 会被跳过，不会发送（召回仅支持 C2C）。
 
+> **空内容行为（两侧不同）**：**Go 版**在 message 为空（只有 `active` / `wakeup` 标记、无正文也无媒体）时，会补发一条内容为**单个空格 `" "`** 的唤醒请求，确保 QQ 侧仍能收到互动召回（`handlers/send_private_msg_wakeup.go` 的空内容兜底分支 `:283-298`，空格字面量在 `:293`；富媒体召回的 `Content` 同样带空格 `:260`）。**Rust 重构版**对空 message 直接回 `1400`，不补空格唤醒（`crates/gensokyo-actions/src/send.rs` 的空消息校验，对应用例 `missing_or_empty_message_is_rejected`）。
+
 ## 使用示例
 
 NoneBot 插件向指定用户发送召回消息：
