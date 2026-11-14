@@ -5,7 +5,7 @@ export default defineConfig({
   title: 'Gensokyo NewQQ',
   description: 'Gensokyo-NewQQ 的 Web 文档、配置说明与 OneBot V11 接入指南',
   lastUpdated: true,
-  ignoreDeadLinks: true,
+  ignoreDeadLinks: false,
   head: [
     ['link', { rel: 'icon', href: '/head.gif' }],
     ['meta', { name: 'theme-color', content: '#3ecf8e' }]
@@ -50,6 +50,7 @@ export default defineConfig({
         text: '接口与事件',
         items: [
           { text: 'API 介绍', link: '/api/api介绍' },
+          { text: 'HTTP 端点', link: '/api/http端点' },
           { text: '扩展 API 文档', link: '/api/扩展API文档' },
           { text: 'CQ 码汇总', link: '/cq码/CQ码汇总' },
           { text: '扩展 CQ 码汇总', link: '/cq码/扩展CQ码汇总' },
@@ -79,7 +80,7 @@ export default defineConfig({
               { text: '[CQ:active] 主动推送标记', link: '/cq码/扩展CQ码/扩展cq码-cq-active' },
               { text: '[CQ:remove] 撤回群消息', link: '/cq码/扩展CQ码/扩展cq码-cq-remove' },
               { text: '[CQ:at] Markdown 中的 @', link: '/cq码/扩展CQ码/扩展cq码-cq-at' },
-              { text: '[CQ:card] 群聊图文卡片', link: '/cq码/扩展CQ码/扩展cq码-cq-card' },
+              { text: '[CQ:card] 图文卡片（群聊/单聊）', link: '/cq码/扩展CQ码/扩展cq码-cq-card' },
               { text: '[CQ:input_notify] 输入状态', link: '/cq码/扩展CQ码/扩展cq码-cq-input_notify' },
               { text: '[CQ:stream] 流式消息', link: '/cq码/扩展CQ码/扩展cq码-cq-stream' },
               { text: '[CQ:keyboard] 内嵌键盘', link: '/cq码/扩展CQ码/扩展cq码-cq-keyboard' },
@@ -124,7 +125,8 @@ export default defineConfig({
         items: [
           { text: 'Rust 重构概览', link: '/rust/overview' },
           { text: '构建与验证', link: '/rust/build' },
-          { text: '性能对比', link: '/rust/perf' }
+          { text: '性能对比', link: '/rust/perf' },
+          { text: 'Rust 差异清单', link: '/rust/actions' }
         ]
       },
       {

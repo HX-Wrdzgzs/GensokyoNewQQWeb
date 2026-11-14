@@ -20,7 +20,7 @@ npm run build
 npm run preview
 ```
 
-VitePress 源文件位于 `docs/`，构建产物位于 `docs/.vitepress/dist/`。
+VitePress 源文件位于 `docs/`，构建产物位于 `docs/.vitepress/dist/`。站点由 VitePress 驱动（`docs/`），历史 Vue 外壳已移除。
 
 ## 内容结构
 

@@ -19,11 +19,11 @@
 | QQ 音乐 | `[CQ:music,type=qq,id=<歌曲ID>]` | `-` | 转为 QQ 音乐 Markdown 卡片。 |
 | 回复 | `[CQ:reply,id=<消息ID>]` | `q群 (Group Chat)` | `send_group_msg` 会尝试转换为 `message_reference`；QQ q群可能接受但不渲染引用样式。 |
 | 成员变动 | `[CQ:member,type=add/remove,group_id=<虚拟群ID>,user_id=<虚拟用户ID>]` | `q群 (Group Chat)` | 群成员入群/退群通知和后续回复路由。见 [CQ member](./cq码/扩展CQ码/扩展cq码-cq-member.md)。 |
-| 主动标记 | `[CQ:active,type=<值>,sub_type=<值>]` | `-` | 当前只解析并移除该 CQ 码，记录 `type` / `sub_type`；没有后续发送逻辑。见 [CQ active](./cq码/扩展CQ码/扩展cq码-cq-active.md)。 |
+| 主动标记 | `[CQ:active,type=<值>,sub_type=<值>]` | `q群 (Group Chat)` / `私聊 (C2C)` | 解析并移除该 CQ 码，置 `foundItems` 的 `active` / `active_type` / `active_sub_type` 三个控制字段；群聊、私聊发送前命中即清空 `msg_id` / `event_id`，强制走主动推送。见 [CQ active](./cq码/扩展CQ码/扩展cq码-cq-active.md)。 |
 | 召回标记 | `[CQ:wakeup,userid=<目标用户>]` | `私聊 (C2C)` | 将 `send_private_msg` 消息作为 C2C 互动召回（`is_wakeup=true`）发送给 `userid` 指定用户（OpenID 或虚拟 ID）。见 [CQ wakeup](./cq码/扩展CQ码/扩展cq码-cq-wakeup.md)。 |
 | @ | `[CQ:at,qq=<虚拟用户ID>]` | `q群 (Group Chat)` | 纯文本出站转为 `@用户名 `，Markdown 出站转为 `<qqbot-at-user id="OpenID" />`。图文混合消息（msg_type=7）同样走纯文本转换路径；图文混合走 Markdown 路径（auto_md，msg_type=2）同样走 Markdown 转换路径（2026-08 修复）。见 [CQ at](./cq码/扩展CQ码/扩展cq码-cq-at.md)。 |
 | 消息撤回 | `[CQ:remove,user_id=<虚拟用户ID>,msg_id=<虚拟消息ID>]` | `q群 (Group Chat)` | 在 `send_group_msg` 中携带，撤回指定群消息。需要同时提供 `user_id` 和 `msg_id`。见 [CQ remove](./cq码/扩展CQ码/扩展cq码-cq-remove.md)。 |
-| 卡片消息 | `[CQ:card,title=<标题>,desc=<描述>,pic=<图片URL>,url=<跳转链接>]` | `q群 (Group Chat)` | 群聊图文卡片消息（`msg_type=8`）。参数顺序无关，`title` 必填，其余可选。见 [CQ card](./cq码/扩展CQ码/扩展cq码-cq-card.md)。 |
+| 卡片消息 | `[CQ:card,title=<标题>,description=<描述>,pic_url=<图片URL>,url=<跳转链接>]` | `q群 (Group Chat)` / `私聊 (C2C)` | 图文卡片消息（`msg_type=8`），群聊与单聊载荷同构。参数顺序无关，`desc` / `pic` 为 `description` / `pic_url` 的别名；`title` / `description` / `url` / `pic_url` **四项必填**，缺任一或格式非法时整条消息回 `1400`。见 [CQ card](./cq码/扩展CQ码/扩展cq码-cq-card.md)。 |
 | 输入状态 | `[CQ:input_notify,type=<类型>,second=<秒数>]` | `私聊 (C2C)` | 在发送正文前先发送"正在输入"状态（`msg_type=6`）。`type` 默认 `1`，`second` 最大 `60`。见 [CQ input_notify](./cq码/扩展CQ码/扩展cq码-cq-input_notify.md)。 |
 | 流式消息 | `[CQ:stream,type:start,qq:<虚拟用户ID>]` | `私聊 (C2C)` | 流式消息，分 start→mid→finish 三阶段逐片发送，实现打字机效果。见 [CQ stream](./cq码/扩展CQ码/扩展cq码-cq-stream.md)。 |
 | 键盘 | `[CQ:keyboard,data=<base64 或 JSON>]` | `q群 (Group Chat)` / `私聊 (C2C)` | 文本消息附加官方内嵌键盘（按钮消息）；与 `[CQ:markdown]` 同存时 markdown 内嵌 keyboard 优先。见 [CQ keyboard](./cq码/扩展CQ码/扩展cq码-cq-keyboard.md)。 |
@@ -38,7 +38,7 @@
 |--------|-----------|------|
 | `markdown` | `data` | 接受 JSON、base64 JSON 或 `base64://` 前缀。 |
 | `avatar` | `qq` | 等同 `[CQ:avatar]`。 |
-| `active` | `type`, `sub_type` | 解析后不写入文本。 |
+| `active` | `type`, `sub_type` | 解析后不写入文本；同时写入 `active` / `active_type` / `active_sub_type` 三个控制字段，发送前命中即强制主动推送。 |
 | `wakeup` | `userid` | 等同 `[CQ:wakeup,userid=xxx]`，解析后不写入文本。 |
 | `member` | `type`, `group_id`, `user_id` | 等同 `[CQ:member]`。 |
 | `keyboard` | `data` | 等同 `[CQ:keyboard]`，解码后存入 `foundItems["keyboard"]`。 |
@@ -86,4 +86,4 @@ Gensokyo 支持 QQ 官方 Markdown 的图片尺寸语法：
 注意：
 
 - 多张图片（或纯图片无文本）不会合并，会按 foundItems 逐条作为富媒体消息发送。
-- 群聊中若开启 `two_way_echo`，图文混排可能被自动转为 Markdown（`msg_type=2`）发送。
+- 群聊中若开启 `twoway_echo`，且本次回复对应的触发消息文本以 `visual_prefixs` 中某个 `prefix` 开头（`prefix` 可写成 `*前缀`，匹配前会去掉 `*`），图文混排会被自动转为 Markdown（`msg_type=2`）发送（`handlers/send_group_msg.go:378`、`:2699-2731`）。
