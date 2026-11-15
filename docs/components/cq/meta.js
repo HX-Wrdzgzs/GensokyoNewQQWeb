@@ -188,3 +188,21 @@ export const CQ_META = Object.freeze({
 export function metaOf(name) {
   return CQ_META[name] || null
 }
+
+/** 码级「缺少常用参数」提示：只述形态，不断言后端结论，也不阻塞渲染与复制。 */
+export const MISSING_PARAM_NOTE = '该码缺少常用参数，后端可能按原文 / 空值处理。'
+
+/**
+ * 码级必填参数组：外层每项是「任一键非空即可」的一组键，缺任一组即视为缺少常用参数。
+ * 只收录文档写明必填口径的码：媒体族看 file|url，music 看 type + id，at 看 qq。
+ * card 的四字段口径已写在其 desc 里，这里不重复列入，避免两处口径分叉。
+ */
+export const CQ_REQUIRED = Object.freeze({
+  at: [['qq']],
+  image: [['file', 'url']],
+  record: [['file', 'url']],
+  voice: [['file', 'url']],
+  video: [['file', 'url']],
+  file: [['file']],
+  music: [['type'], ['id']]
+})

@@ -1,8 +1,15 @@
 <script setup>
-import { computed, onBeforeUnmount, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 // 解析引擎唯一入口：站内不再自带第二套 CQ 码解析实现（语义与后端对齐，见模块头 file:line 依据）
 import { parseCq } from '../.vitepress/cq/parser.js'
-import { DEFAULT_BARE_NOTE, KIND_LABELS, metaOf } from './cq/meta.js'
+import {
+  CQ_REQUIRED,
+  DEFAULT_BARE_NOTE,
+  KIND_LABELS,
+  MISSING_PARAM_NOTE,
+  metaOf
+} from './cq/meta.js'
+import { CQ_EXAMPLES } from './cq/examples.js'
 import './cq/tone.css'
 import AtPreview from './cq/AtPreview.vue'
 import FacePreview from './cq/FacePreview.vue'
@@ -22,8 +29,21 @@ const copyState = ref({ key: '', ok: false })
 const liveMessage = ref('')
 let copyTimer = null
 
+// 分享态：链接只在点过「复制分享链接」后展示，复制失败时它就是手动复制的落点
+const shareUrl = ref('')
+const shareLabel = ref('复制分享链接')
+const shareUrlEl = ref(null)
+let shareTimer = null
+
 onBeforeUnmount(() => {
   if (copyTimer) clearTimeout(copyTimer)
+  if (shareTimer) clearTimeout(shareTimer)
+})
+
+// 地址栏 ?cq= 回填：查询参数只在挂载后读一次，SSR 期没有 window
+onMounted(() => {
+  const shared = new URLSearchParams(window.location.search).get('cq')
+  if (shared) cqInput.value = shared
 })
 
 function previewFor(token) {
@@ -44,9 +64,21 @@ function bareNote(token) {
   return (meta && meta.bareNote) || DEFAULT_BARE_NOTE
 }
 
+// 码级校验：裸码已有专属说明、未知码交给带外提示，两者都不再叠加这条
+function missingHint(token) {
+  if (!token.known || token.bare) return ''
+  const groups = CQ_REQUIRED[token.name]
+  if (!groups) return ''
+  const missing = groups.some((group) =>
+    group.every((key) => token.params[key] === undefined || token.params[key] === '')
+  )
+  return missing ? MISSING_PARAM_NOTE : ''
+}
+
 function paramHint(key, value) {
   if (value === '') return '空值'
-  if (LINK_KEYS.has(key) && !/^https?:\/\//i.test(value) && !/^base64:\/\//i.test(value)) {
+  if (/^base64:\/\//i.test(value)) return 'base64:// 载荷形态，网页端不解码'
+  if (LINK_KEYS.has(key) && !/^https?:\/\//i.test(value)) {
     return '不是 http(s) 链接，也不是 base64:// 形态'
   }
   return ''
@@ -64,27 +96,30 @@ async function writeClipboard(text) {
   return false
 }
 
-// 复制失败兜底：原文按钮选本段的 .cq-tag，JSON 按钮选 JSON 代码块（该块在 .cq-card 之外，故按按钮就近取 .panel）
-function selectFallback(button, field) {
-  if (!button || typeof window === 'undefined' || !window.getSelection) return
-  const isJson = field === 'json'
-  const scope = button.closest(isJson ? '.panel' : '.cq-card')
-  if (!scope) return
-  let target
-  if (isJson) {
-    const block = scope.querySelector('.json-code-block')
-    // 折叠的 <details> 内容无法被选中，先展开
-    if (block && !block.open) block.open = true
-    target = block ? block.querySelector('pre code') : null
-  } else {
-    target = scope.querySelector('.cq-tag')
-  }
-  if (!target) return
+// 选中兜底：把目标节点内容整段框进选区，剪贴板不可用时用户按 Ctrl+C 即可
+function selectElement(target) {
+  if (!target || typeof window === 'undefined' || !window.getSelection) return
   const range = document.createRange()
   range.selectNodeContents(target)
   const selection = window.getSelection()
   selection.removeAllRanges()
   selection.addRange(range)
+}
+
+// 复制失败兜底：原文按钮选本段的 .cq-tag，JSON 按钮选 JSON 代码块（该块在 .cq-card 之外，故按按钮就近取 .panel）
+function selectFallback(button, field) {
+  if (!button) return
+  if (field === 'json') {
+    const scope = button.closest('.panel')
+    if (!scope) return
+    const block = scope.querySelector('.json-code-block')
+    // 折叠的 <details> 内容无法被选中，先展开
+    if (block && !block.open) block.open = true
+    selectElement(block ? block.querySelector('pre code') : null)
+    return
+  }
+  const card = button.closest('.cq-card')
+  if (card) selectElement(card.querySelector('.cq-tag'))
 }
 
 function markCopy(key, ok, field) {
@@ -112,19 +147,70 @@ function copyLabel(token, field) {
   }
   return copyState.value.ok ? '已复制' : '已选中'
 }
+
+// 样例回填：覆盖输入即触发解析；已处于分享态时顺带刷新链接，避免复制到过期内容
+function applyExample(event) {
+  const select = event?.target
+  const value = select?.value || ''
+  if (!value) return
+  cqInput.value = value
+  select.value = '' // 复位下拉，让同一样例可重复点击
+  if (new URLSearchParams(window.location.search).has('cq')) shareUrl.value = syncShareParam()
+}
+
+// 把当前输入写进 ?cq=（encodeURIComponent 口径），hash 与其它查询参数原样保留
+function syncShareParam() {
+  const url = new URL(window.location.href)
+  if (cqInput.value) url.searchParams.set('cq', cqInput.value)
+  else url.searchParams.delete('cq')
+  window.history.replaceState(window.history.state, '', url)
+  return url.href
+}
+
+async function shareLink() {
+  shareUrl.value = syncShareParam()
+  const ok = await writeClipboard(shareUrl.value)
+  if (!ok) {
+    await nextTick()
+    selectElement(shareUrlEl.value)
+  }
+  liveMessage.value = ok ? '分享链接已复制' : '分享链接复制失败，已选中链接，请按 Ctrl+C'
+  shareLabel.value = ok ? '链接已复制' : '复制失败，请手动复制'
+  if (shareTimer) clearTimeout(shareTimer)
+  shareTimer = setTimeout(() => {
+    shareLabel.value = '复制分享链接'
+  }, 2000)
+}
 </script>
 
 <template>
   <div class="playground-card">
     <div class="playground-grid">
       <div class="panel">
-        <label class="panel-label" for="cq-playground-input">OneBot CQ码输入</label>
+        <div class="panel-label panel-label-row">
+          <label for="cq-playground-input">OneBot CQ码输入</label>
+          <span class="panel-tools">
+            <select class="cq-select" aria-label="CQ 码样例库" @change="applyExample">
+              <option value="">样例库…</option>
+              <optgroup v-for="group in CQ_EXAMPLES" :key="group.group" :label="group.group">
+                <option v-for="item in group.items" :key="item.label" :value="item.value">
+                  {{ item.label }}
+                </option>
+              </optgroup>
+            </select>
+            <button type="button" class="cq-btn" @click="shareLink">{{ shareLabel }}</button>
+          </span>
+        </div>
         <textarea
           id="cq-playground-input"
           v-model="cqInput"
           class="playground-textarea"
           placeholder="在此输入包含 CQ 码的文本..."
         ></textarea>
+        <p v-if="shareUrl" class="share-row">
+          <span class="share-hint">分享链接（写入地址栏 ?cq=，复制失败时可直接选中）</span>
+          <code ref="shareUrlEl" class="share-url">{{ shareUrl }}</code>
+        </p>
       </div>
 
       <div class="panel">
@@ -176,6 +262,7 @@ function copyLabel(token, field) {
                       {{ metaOf(token.name).desc }}
                     </p>
                     <p v-if="token.bare" class="cq-note">{{ bareNote(token) }}</p>
+                    <p v-if="missingHint(token)" class="cq-warn">{{ missingHint(token) }}</p>
 
                     <div v-if="token.bare" class="cq-params-line">无参裸码（没有参数表）</div>
                     <div v-else-if="Object.keys(token.params).length === 0" class="cq-params-line">
@@ -275,6 +362,29 @@ function copyLabel(token, field) {
   justify-content: space-between;
 }
 
+.panel-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  font-weight: 400;
+}
+
+.cq-select {
+  max-width: 220px;
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  border: 1px solid var(--vp-c-divider);
+  background: var(--vp-c-bg-soft);
+  color: var(--vp-c-text-1);
+}
+
+.cq-select:focus-visible {
+  outline: 2px solid var(--vp-c-brand-1);
+  outline-offset: 2px;
+}
+
 .panel-count {
   font-size: 12px;
   font-weight: 400;
@@ -292,6 +402,30 @@ function copyLabel(token, field) {
   font-size: 14px;
   outline: none;
   line-height: 1.6;
+}
+
+.share-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0 16px 14px;
+}
+
+.share-hint {
+  font-size: 11px;
+  color: var(--vp-c-text-3);
+}
+
+.share-url {
+  font-family: var(--vp-font-family-mono);
+  font-size: 11px;
+  line-height: 1.6;
+  padding: 4px 6px;
+  border-radius: 6px;
+  background: var(--vp-c-bg-mute);
+  color: var(--vp-c-text-2);
+  overflow-wrap: anywhere;
 }
 
 .chat-preview {
@@ -466,6 +600,18 @@ function copyLabel(token, field) {
   border-radius: 8px;
   border: 1px dashed var(--vp-c-divider);
   background: var(--vp-c-bg-mute);
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--vp-c-text-2);
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.cq-warn {
+  margin: 6px 0 0;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px dashed var(--vp-c-warning-1, var(--vp-c-text-3));
   font-size: 12px;
   line-height: 1.6;
   color: var(--vp-c-text-2);
