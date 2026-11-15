@@ -62,6 +62,7 @@ export default defineConfig({
               { text: '[CQ:face] QQ 表情', link: '/cq码/标准CQ码/标准cq码-cq-face' },
               { text: '[CQ:image] 图片', link: '/cq码/标准CQ码/标准cq码-cq-image' },
               { text: '[CQ:record] 语音', link: '/cq码/标准CQ码/标准cq码-cq-record' },
+              { text: '[CQ:voice] 语音别名', link: '/cq码/标准CQ码/标准cq码-cq-voice' },
               { text: '[CQ:video] 视频', link: '/cq码/标准CQ码/标准cq码-cq-video' },
               { text: '[CQ:at] @ 标签', link: '/cq码/标准CQ码/标准cq码-cq-at' },
               { text: '[CQ:file] 文件', link: '/cq码/标准CQ码/标准cq码-cq-file' },
@@ -86,7 +87,13 @@ export default defineConfig({
               { text: '[CQ:keyboard] 内嵌键盘', link: '/cq码/扩展CQ码/扩展cq码-cq-keyboard' },
               { text: '[CQ:wakeup] C2C 召回标记', link: '/cq码/扩展CQ码/扩展cq码-cq-wakeup' },
               { text: '[CQ:set_group] 群管理动作', link: '/cq码/扩展CQ码/扩展cq码-cq-set_group' },
-              { text: '[CQ:group_info] 群信息展开', link: '/cq码/扩展CQ码/扩展cq码-cq-group_info' }
+              { text: '[CQ:group_info] 群信息展开', link: '/cq码/扩展CQ码/扩展cq码-cq-group_info' },
+              { text: '[CQ:avatar] 头像', link: '/cq码/扩展CQ码/扩展cq码-cq-avatar' },
+              { text: '[CQ:markdown] Markdown 卡片', link: '/cq码/扩展CQ码/扩展cq码-cq-markdown' },
+              { text: '[CQ:ark] 结构化卡片', link: '/cq码/扩展CQ码/扩展cq码-cq-ark' },
+              { text: '[CQ:json] JSON 卡片', link: '/cq码/扩展CQ码/扩展cq码-cq-json' },
+              { text: '[CQ:poke] 戳一戳', link: '/cq码/扩展CQ码/扩展cq码-cq-poke' },
+              { text: '[CQ:node] 合并转发节点', link: '/cq码/扩展CQ码/扩展cq码-cq-node' }
             ]
           },
           {
