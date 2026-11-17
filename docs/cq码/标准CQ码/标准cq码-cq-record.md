@@ -1,5 +1,11 @@
 # [CQ:record]
 
+<script setup>
+import TryInPlayground from '../../components/cq/TryInPlayground.vue'
+</script>
+
+<TryInPlayground example="[CQ:record,file=base64://QUJD]" />
+
 > 🧪 **测试插件**：[CQ-record](https://github.com/Te-River/Gensokyo-NewQQ-Test-plugins/tree/main/CQ-record) — 发送「语音」体验
 
 ## 用途
@@ -7,6 +13,12 @@
 `[CQ:record]` 用于发送和接收语音消息。Gensokyo 会将语音文件自动转码为 silk 格式后上传至 QQ CDN。
 
 `[CQ:voice]` 是 `[CQ:record]` 的**同义别名**：Go 侧与 `record` 走同一处理分支、内部键归一为 `*_record`（`handlers/cqparse/handlers_media.go:27` 注册 `voice`、`:46-50` 归一键）；Rust 重构版同样把两者并到语音通道（`crates/gensokyo-protocol/src/outbound.rs:583`）。诚实说明：重构版曾有一段时间 `[CQ:voice]` 落到兜底分支、不走语音通道，已于 **P57-②** 修复（见 `reports/refactor/17-go-rust-parity.md` 的 `voice` 别名行）。
+
+> [!WARNING] legacy 模式的字符串入参下，`[CQ:voice]` 不会被消费
+> 只有**消息段**路径与 `cq_parse_mode: new`（cqparse）才把 `voice` 与 `record` 视为同义：
+>
+> - 默认 `cq_parse_mode: legacy`（`template/config_template.go:182`）下，以**字符串**形式传入的消息由 legacy 正则处理，而该正则只认 `[CQ:record]` 字面（`handlers/cqcode.go:30-32`、`:56`、`:60`）。`[CQ:voice,file=…]` 不被消费，会按字面文本发到会话里。
+> - 改用消息段 `{"type":"voice",...}`，或把 `cq_parse_mode` 切到 `new`，才与 `[CQ:record]` 等价。
 
 范围：`q群 (Group Chat)` / `C2C (私聊)`
 

@@ -1,5 +1,11 @@
 # [CQ:stream]
 
+<script setup>
+import TryInPlayground from '../../components/cq/TryInPlayground.vue'
+</script>
+
+<TryInPlayground example="[CQ:stream,type:start,qq:123456789]正在为您查询" />
+
 > 🧪 **测试插件**：[CQ-stream](https://github.com/Te-River/Gensokyo-NewQQ-Test-plugins/tree/main/CQ-stream) — 发送「流式测试」体验
 
 ## 用途

@@ -1,5 +1,11 @@
 # [CQ:wakeup]
 
+<script setup>
+import TryInPlayground from '../../components/cq/TryInPlayground.vue'
+</script>
+
+<TryInPlayground example="[CQ:wakeup,userid=10001]" />
+
 > 🧪 **测试插件**：[gsk-wakeup](https://github.com/Te-River/Gensokyo-NewQQ-Test-plugins/tree/main/gsk-wakeup) — 发送「召回测试」体验
 
 ## 用途

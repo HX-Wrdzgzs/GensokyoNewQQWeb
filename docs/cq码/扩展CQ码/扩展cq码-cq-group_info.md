@@ -1,5 +1,11 @@
 # [CQ:group_info]
 
+<script setup>
+import TryInPlayground from '../../components/cq/TryInPlayground.vue'
+</script>
+
+<TryInPlayground example="[CQ:group_info,field=name]" />
+
 > 🆕 **新增扩展码**（2026-09，随 cqparse 统一解析架构发布）
 
 ## 用途

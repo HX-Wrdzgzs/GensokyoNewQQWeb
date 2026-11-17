@@ -1,5 +1,11 @@
 # [CQ:text]
 
+<script setup>
+import TryInPlayground from '../../components/cq/TryInPlayground.vue'
+</script>
+
+<TryInPlayground example="[CQ:text,text=你好世界]" />
+
 ## 用途
 
 `[CQ:text]` 是消息中最基本的文本部分。在 OneBot V11 协议中，任何消息都可以由一个或多个 `[CQ:text]` 段和其他 CQ 码段组合而成。

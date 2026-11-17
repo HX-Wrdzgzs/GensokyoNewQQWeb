@@ -1,5 +1,11 @@
 # [CQ:active]
 
+<script setup>
+import TryInPlayground from '../../components/cq/TryInPlayground.vue'
+</script>
+
+<TryInPlayground example="[CQ:active]" />
+
 > 🧪 **测试插件**：[CQ-active](https://github.com/Te-River/Gensokyo-NewQQ-Test-plugins/tree/main/CQ-active) — 发送「推送状态 / 群列表 / 推送」体验
 
 ## 用途

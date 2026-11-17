@@ -1,5 +1,11 @@
 # [CQ:input_notify]
 
+<script setup>
+import TryInPlayground from '../../components/cq/TryInPlayground.vue'
+</script>
+
+<TryInPlayground example="[CQ:input_notify,type=1,second=10]" />
+
 > 🧪 **测试插件**：[CQ-input_notify](https://github.com/Te-River/Gensokyo-NewQQ-Test-plugins/tree/main/CQ-input_notify) — 发送「输入测试」体验
 
 ## 用途

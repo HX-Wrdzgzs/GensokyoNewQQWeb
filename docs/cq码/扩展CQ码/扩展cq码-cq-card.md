@@ -1,5 +1,11 @@
 # [CQ:card]
 
+<script setup>
+import TryInPlayground from '../../components/cq/TryInPlayground.vue'
+</script>
+
+<TryInPlayground example='[CQ:card,title=t,desc=d,pic=https://example.com/p.png,url=https://example.com]' />
+
 > 🧪 **测试插件**：[CQ-card](https://github.com/Te-River/Gensokyo-NewQQ-Test-plugins/tree/main/CQ-card) — 发送「card」体验
 
 ## 用途

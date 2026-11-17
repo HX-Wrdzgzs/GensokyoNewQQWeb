@@ -1,5 +1,11 @@
 # [CQ:music]
 
+<script setup>
+import TryInPlayground from '../../components/cq/TryInPlayground.vue'
+</script>
+
+<TryInPlayground example="[CQ:music,type=qq,id=123]" />
+
 > 🧪 **测试插件**：[CQ-music](https://github.com/Te-River/Gensokyo-NewQQ-Test-plugins/tree/main/CQ-music) — 发送「音乐测试」体验
 
 ## 用途

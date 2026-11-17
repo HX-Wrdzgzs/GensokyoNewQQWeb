@@ -1,5 +1,11 @@
 # [CQ:remove]
 
+<script setup>
+import TryInPlayground from '../../components/cq/TryInPlayground.vue'
+</script>
+
+<TryInPlayground example="[CQ:remove,user_id=791838020,msg_id=1823]" />
+
 > 🧪 **测试插件**：[CQ-remove](https://github.com/Te-River/Gensokyo-NewQQ-Test-plugins/tree/main/CQ-remove) — 发送「撤回测试」体验
 
 ## 用途

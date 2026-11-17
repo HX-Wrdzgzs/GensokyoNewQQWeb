@@ -1,5 +1,11 @@
 # [CQ:location]
 
+<script setup>
+import TryInPlayground from '../../components/cq/TryInPlayground.vue'
+</script>
+
+<TryInPlayground example="[CQ:location,lat=39.908823,lon=116.397470,title=北京市]" />
+
 > ℹ️ **官方 API 无对应实现，本文件为兼容说明**：QQ Bot API 不提供位置消息接口，Gensokyo 代码中没有 `[CQ:location]` 的解析与发送分支，本页仅说明该码在站内的兼容语义。
 
 ## 用途

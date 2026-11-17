@@ -1,5 +1,11 @@
 # [CQ:member]
 
+<script setup>
+import TryInPlayground from '../../components/cq/TryInPlayground.vue'
+</script>
+
+<TryInPlayground example="[CQ:member,type=add,group_id=821404315,user_id=3607918353]欢迎入群" />
+
 > 🧪 **测试插件**：[gsk-welcome](https://github.com/Te-River/Gensokyo-NewQQ-Test-plugins/tree/main/gsk-welcome)（入群欢迎，自动触发）体验
 
 ## 用途

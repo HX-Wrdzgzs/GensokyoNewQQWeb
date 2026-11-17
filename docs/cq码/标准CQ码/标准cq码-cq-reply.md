@@ -1,5 +1,11 @@
 # [CQ:reply]
 
+<script setup>
+import TryInPlayground from '../../components/cq/TryInPlayground.vue'
+</script>
+
+<TryInPlayground example="[CQ:reply,id=123] 收到" />
+
 > 🧪 **测试插件**：[CQ-reply](https://github.com/Te-River/Gensokyo-NewQQ-Test-plugins/tree/main/CQ-reply) — 发送「引用」体验
 
 ## 用途

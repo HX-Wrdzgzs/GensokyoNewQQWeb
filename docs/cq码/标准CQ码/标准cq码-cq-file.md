@@ -1,5 +1,11 @@
 # [CQ:file]
 
+<script setup>
+import TryInPlayground from '../../components/cq/TryInPlayground.vue'
+</script>
+
+<TryInPlayground example="[CQ:file,file=https://example.com/file.zip]" />
+
 > 🧪 **测试插件**：[CQ-file](https://github.com/Te-River/Gensokyo-NewQQ-Test-plugins/tree/main/CQ-file) — 发送「文件测试」体验
 
 ## 用途

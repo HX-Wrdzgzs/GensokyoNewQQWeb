@@ -1,5 +1,11 @@
 # [CQ:keyboard]
 
+<script setup>
+import TryInPlayground from '../../components/cq/TryInPlayground.vue'
+</script>
+
+<TryInPlayground example='[CQ:keyboard,data={"id":"模板ID"}]' />
+
 > 🧪 **测试插件**：[CQ-keyboard](https://github.com/Te-River/Gensokyo-NewQQ-Test-plugins/tree/main/CQ-keyboard) — 发送「键盘测试」体验
 
 ## 用途

@@ -1,5 +1,11 @@
 # [CQ:share]
 
+<script setup>
+import TryInPlayground from '../../components/cq/TryInPlayground.vue'
+</script>
+
+<TryInPlayground example="[CQ:share,url=https://example.com,title=示例分享]" />
+
 > ℹ️ **官方 API 无对应实现，本文件为兼容说明**：QQ Bot API 不提供链接分享卡片接口，Gensokyo 代码中没有 `[CQ:share]` 的解析与发送分支，本页仅说明该码在站内的兼容语义。
 
 ## 用途

@@ -1,5 +1,11 @@
 # [CQ:at]
 
+<script setup>
+import TryInPlayground from '../../components/cq/TryInPlayground.vue'
+</script>
+
+<TryInPlayground example="[CQ:at,qq=10001] 早上好" />
+
 > 🧪 **测试插件**：[CQ-at](https://github.com/Te-River/Gensokyo-NewQQ-Test-plugins/tree/main/CQ-at)（发送「at检测」）、[CQ-normal_at](https://github.com/Te-River/Gensokyo-NewQQ-Test-plugins/tree/main/CQ-normal_at)（发送「普通at」）体验
 
 ## 说明

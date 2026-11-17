@@ -1,5 +1,11 @@
 # [CQ:video]
 
+<script setup>
+import TryInPlayground from '../../components/cq/TryInPlayground.vue'
+</script>
+
+<TryInPlayground example="[CQ:video,file=https://example.com/video.mp4]" />
+
 > 🧪 **测试插件**：[CQ-video](https://github.com/Te-River/Gensokyo-NewQQ-Test-plugins/tree/main/CQ-video) — 发送「视频测试」体验
 
 ## 用途

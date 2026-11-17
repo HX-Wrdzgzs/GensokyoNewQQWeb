@@ -48,10 +48,10 @@ const matrixItems = [
   { id: 'cq-record', name: '[CQ:record]', type: 'cq', status: 'adapted', desc: '语音消息，包含格式转换处理' },
   { id: 'cq-video', name: '[CQ:video]', type: 'cq', status: 'adapted', desc: '短视频消息' },
   { id: 'cq-at', name: '[CQ:at]', type: 'cq', status: 'adapted', desc: '@ 用户，并处理虚拟 ID 与 OpenID 映射' },
-  { id: 'cq-share', name: '[CQ:share]', type: 'cq', status: 'adapted', desc: '链接分享消息' },
+  { id: 'cq-share', name: '[CQ:share]', type: 'cq', status: 'unsupported', desc: '链接分享卡片；QQ Bot API 无对应接口，Gensokyo 两端均无解析与发送分支，入站也不上报' },
   { id: 'cq-music', name: '[CQ:music]', type: 'cq', status: 'adapted', desc: '音乐分享与自定义音乐分享' },
   { id: 'cq-reply', name: '[CQ:reply]', type: 'cq', status: 'adapted', desc: '回复消息' },
-  { id: 'cq-forward', name: '[CQ:forward]', type: 'cq', status: 'adapted', desc: '合并转发消息' },
+  { id: 'cq-forward', name: '[CQ:forward]', type: 'cq', status: 'unsupported', desc: '合并转发消息；QQ Bot API 无对应接口，Gensokyo 两端均无解析与发送分支，写入该码不生效' },
   { id: 'cq-node', name: '[CQ:node]', type: 'cq', status: 'adapted', desc: '合并转发节点' },
   { id: 'cq-xml', name: '[CQ:xml]', type: 'cq', status: 'adapted', desc: 'XML 消息；可用性受官方接口限制' },
   { id: 'cq-json', name: '[CQ:json]', type: 'cq', status: 'adapted', desc: 'JSON 消息；可用性受官方接口限制' },
@@ -75,7 +75,8 @@ const tabLabels = {
 const statusLabels = {
   supported: '已映射',
   adapted: '适配实现',
-  extended: '项目扩展'
+  extended: '项目扩展',
+  unsupported: '不支持'
 }
 
 const filteredMatrix = computed(() => {
@@ -99,7 +100,7 @@ const tabCounts = computed(() => ({
 <template>
   <div class="matrix-container">
     <div class="matrix-note">
-      本表用于快速检索主仓库文档中列出的能力，不代表所有字段与 OneBot 原始实现完全一致。标记为“适配实现”的项目会受到 QQ 官方权限、事件模型或接口限制。
+      本表用于快速检索主仓库文档中列出的能力，不代表所有字段与 OneBot 原始实现完全一致。标记为“适配实现”的项目会受到 QQ 官方权限、事件模型或接口限制；标记为“不支持”的项目表示官方接口与 Gensokyo 均无对应实现，仅保留文档兼容说明。
     </div>
 
     <div class="matrix-controls">
@@ -281,6 +282,7 @@ const tabCounts = computed(() => ({
 .status-tag.supported { background: rgba(16, 185, 129, 0.1); color: #059669; }
 .status-tag.adapted { background: rgba(245, 158, 11, 0.12); color: #b45309; }
 .status-tag.extended { background: rgba(6, 182, 212, 0.12); color: #0891b2; }
+.status-tag.unsupported { background: rgba(107, 114, 128, 0.14); color: #4b5563; }
 
 .font-mono {
   font-family: var(--vp-font-family-mono);

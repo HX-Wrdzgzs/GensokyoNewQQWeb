@@ -1,5 +1,11 @@
 # [CQ:set_group]
 
+<script setup>
+import TryInPlayground from '../../components/cq/TryInPlayground.vue'
+</script>
+
+<TryInPlayground example="[CQ:set_group,action=ban,group_id=821404315,user_id=3607918353,duration=60]" />
+
 > 🧪 **测试插件**：[CQ-set_group](https://github.com/Te-River/Gensokyo-NewQQ-Test-plugins/tree/main/CQ-set_group)（发送「群禁言测试 / 群全员禁言测试 / 入群审批测试」）、[CQ-set_group_ban](https://github.com/Te-River/Gensokyo-NewQQ-Test-plugins/tree/main/CQ-set_group_ban)（发送「禁言测试」）、[CQ-set_group_whole_ban](https://github.com/Te-River/Gensokyo-NewQQ-Test-plugins/tree/main/CQ-set_group_whole_ban)（发送「全员禁言测试」）、[join_approval](https://github.com/Te-River/Gensokyo-NewQQ-Test-plugins/tree/main/join_approval)（入群申请转发审批）体验
 
 ## 概述

@@ -1,5 +1,11 @@
 # [CQ:face]
 
+<script setup>
+import TryInPlayground from '../../components/cq/TryInPlayground.vue'
+</script>
+
+<TryInPlayground example="[CQ:face,id=14]" />
+
 > ⚠️ **暂不可用**：QQ Bot API 没有独立的表情消息段，Gensokyo（Go 主线）入站**不产出** `[CQ:face]` 段（`Processor/` 全目录无 `CQ:face` 生成点），出站也**不解析**该码——含 `[CQ:face,...]` 的正文按文本透传发出。
 
 ## 用途
