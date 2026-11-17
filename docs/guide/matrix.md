@@ -1,6 +1,6 @@
 # API、CQ 码与扩展能力矩阵
 
-本页汇总 Gensokyo-NewQQ 主仓库文档中列出的 OneBot V11 API、项目扩展 API 和 CQ 码，便于部署者与插件开发者快速检索。
+本页汇总 Gensokyo-NewQQ 主仓库文档与站内 CQ 码分页中列出的 OneBot V11 API、项目扩展 API 和 CQ 码，便于部署者与插件开发者快速检索。
 
 矩阵中的状态含义：
 

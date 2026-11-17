@@ -44,11 +44,14 @@ const matrixItems = [
   { id: 'ext-send-to-group', name: 'send_to_group', type: 'ext', status: 'extended', desc: 'send_group_msg 的项目别名' },
   { id: 'ext-send-group-msg-raw', name: 'send_group_msg_raw', type: 'ext', status: 'extended', desc: '发送原始群消息数据' },
 
-  { id: 'cq-face', name: '[CQ:face]', type: 'cq', status: 'supported', desc: 'QQ 表情' },
+  { id: 'cq-text', name: '[CQ:text]', type: 'cq', status: 'supported', desc: '纯文本消息段；全场景，正文原样发送' },
+  { id: 'cq-face', name: '[CQ:face]', type: 'cq', status: 'adapted', desc: 'QQ 表情；Go 入站不产出该码、出站按文本透传' },
   { id: 'cq-record', name: '[CQ:record]', type: 'cq', status: 'adapted', desc: '语音消息，包含格式转换处理' },
+  { id: 'cq-voice', name: '[CQ:voice]', type: 'cq', status: 'adapted', desc: 'record 的同义别名；复用语音通道，legacy 字符串入参不消费该码' },
   { id: 'cq-video', name: '[CQ:video]', type: 'cq', status: 'adapted', desc: '短视频消息' },
   { id: 'cq-at', name: '[CQ:at]', type: 'cq', status: 'adapted', desc: '@ 用户，并处理虚拟 ID 与 OpenID 映射' },
   { id: 'cq-share', name: '[CQ:share]', type: 'cq', status: 'unsupported', desc: '链接分享卡片；QQ Bot API 无对应接口，Gensokyo 两端均无解析与发送分支，入站也不上报' },
+  { id: 'cq-location', name: '[CQ:location]', type: 'cq', status: 'unsupported', desc: '位置消息；QQ Bot API 无对应接口，Gensokyo 两端均无解析与发送分支' },
   { id: 'cq-music', name: '[CQ:music]', type: 'cq', status: 'adapted', desc: '音乐分享与自定义音乐分享' },
   { id: 'cq-reply', name: '[CQ:reply]', type: 'cq', status: 'adapted', desc: '回复消息' },
   { id: 'cq-forward', name: '[CQ:forward]', type: 'cq', status: 'unsupported', desc: '合并转发消息；QQ Bot API 无对应接口，Gensokyo 两端均无解析与发送分支，写入该码不生效' },
@@ -61,8 +64,17 @@ const matrixItems = [
   { id: 'cq-avatar', name: '[CQ:avatar]', type: 'cq', status: 'extended', desc: '项目扩展头像获取' },
   { id: 'cq-member', name: '[CQ:member]', type: 'cq', status: 'extended', desc: '项目扩展群成员变动表示' },
   { id: 'cq-active', name: '[CQ:active]', type: 'cq', status: 'extended', desc: '项目扩展 active 标记' },
+  { id: 'cq-wakeup', name: '[CQ:wakeup]', type: 'cq', status: 'extended', desc: 'C2C 互动召回标记；send_private_msg_wakeup 消费，发送时 IsWakeup=true' },
+  { id: 'cq-remove', name: '[CQ:remove]', type: 'cq', status: 'extended', desc: '撤回指定群消息（出站单向，需 user_id + msg_id）' },
   { id: 'cq-tts', name: '[CQ:tts]', type: 'cq', status: 'adapted', desc: '文本转语音' },
-  { id: 'cq-file', name: '[CQ:file]', type: 'cq', status: 'extended', desc: '项目扩展文件上传' }
+  { id: 'cq-file', name: '[CQ:file]', type: 'cq', status: 'extended', desc: '项目扩展文件上传' },
+  { id: 'cq-card', name: '[CQ:card]', type: 'cq', status: 'extended', desc: '图文卡片（msg_type=8）；群聊四字段必填，Go 版单聊无卡片路径' },
+  { id: 'cq-input_notify', name: '[CQ:input_notify]', type: 'cq', status: 'extended', desc: '单聊输入状态通知（msg_type=6）：正文前先展示「正在输入」' },
+  { id: 'cq-stream', name: '[CQ:stream]', type: 'cq', status: 'extended', desc: '单聊流式消息：start→mid→finish 逐片展示' },
+  { id: 'cq-keyboard', name: '[CQ:keyboard]', type: 'cq', status: 'extended', desc: '内嵌键盘（按钮消息）；按钮仅在 Markdown 消息下渲染' },
+  { id: 'cq-set_group', name: '[CQ:set_group]', type: 'cq', status: 'extended', desc: '出站群管理动作统一码；whole_ban 无官方写入字段，固定失败' },
+  { id: 'cq-group_info', name: '[CQ:group_info]', type: 'cq', status: 'extended', desc: '群信息展开码；需 cq_parse_mode: new，legacy/shadow 下按原文发出' },
+  { id: 'cq-ark', name: '[CQ:ark]', type: 'cq', status: 'extended', desc: '入站专用结构化卡片（message_type=3）；出站整段剥离' }
 ]
 
 const tabLabels = {
@@ -100,7 +112,7 @@ const tabCounts = computed(() => ({
 <template>
   <div class="matrix-container">
     <div class="matrix-note">
-      本表用于快速检索主仓库文档中列出的能力，不代表所有字段与 OneBot 原始实现完全一致。标记为“适配实现”的项目会受到 QQ 官方权限、事件模型或接口限制；标记为“不支持”的项目表示官方接口与 Gensokyo 均无对应实现，仅保留文档兼容说明。
+      本表用于快速检索主仓库文档与站内 CQ 码分页中列出的能力，不代表所有字段与 OneBot 原始实现完全一致。标记为“适配实现”的项目会受到 QQ 官方权限、事件模型或接口限制；标记为“不支持”的项目表示官方接口与 Gensokyo 均无对应实现，仅保留文档兼容说明。
     </div>
 
     <div class="matrix-controls">
