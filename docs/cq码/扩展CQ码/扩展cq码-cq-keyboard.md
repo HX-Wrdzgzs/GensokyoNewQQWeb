@@ -132,6 +132,16 @@ import TryInPlayground from '../../components/cq/TryInPlayground.vue'
 | `specify_user_ids` | string[] | 否 | 有权限的用户 id 列表（Gensokyo 自动将数字虚拟 ID 转为 OpenID） |
 | `specify_role_ids` | string[] | 否 | 有权限的身份组 id 列表（仅频道可用） |
 
+### C2C 私聊的权限归一化
+
+> [!TIP] 私聊发送时，按钮的 permission.type 会被自动改成 2（所有人）
+> QQ 官方 C2C 场景只接受 `type=2`：写成 `0`（指定用户，含空名单）、`1`（仅管理者）、`3`（身份组）时，按钮点击会被服务端拒绝。单聊只有对话双方，任何权限限制都等于「谁都点不了」，因此 Gensokyo 在**私聊发送路径**上把非 `2` 的取值统一归一为 `2`（`handlers/message_parser.go:2782-2799` 的 `NormalizeC2CKeyboardPermission`；调用点 `handlers/send_private_msg.go:516`、`:545`、`:642`、`handlers/outbound_bridge.go:976`、`:992`）。`specify_user_ids` / `specify_role_ids` 原样保留，不影响 C2C 下发。
+>
+> **群聊不做归一**：`permission.type` 的限制在群聊是合法能力，插件写什么就发什么。
+
+- **`__USER_ID__` 占位符**：私聊路径会把它替换成对话对方的真实 OpenID（`ResolvePlaceholderUserIDs`，`handlers/message_parser.go:2758-2780`）；**群聊路径暂不解析该占位符**（已知限制），需要在群聊里指定具体用户时，请直接填虚拟 ID 或 OpenID。
+- 归一发生在发送期、不修改插件的原始配置：同一条 keyboard JSON 复用到群聊时仍是原本的 `permission.type`。
+
 ### 完整示例（三按钮：指令 + 回调 + 跳转）
 
 ```json
@@ -240,3 +250,4 @@ await bot.send_group_msg(group_id=821404315, message=msg)
 - `action.type=2` 指令按钮的 `enter`/`reply` 参数仅单聊可用（官方版本 8983+）。
 - 同一键盘内按钮 `id` 需唯一。
 - 消息中同时携带 `[CQ:markdown]` 时，markdown JSON 内嵌的 keyboard 优先；markdown 未内嵌 keyboard 时独立 `[CQ:keyboard]` 仍生效（v013 起共存）。
+- 私聊（C2C）发送时按钮权限会被归一为 `permission.type=2`，见上文「C2C 私聊的权限归一化」。

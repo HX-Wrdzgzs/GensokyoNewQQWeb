@@ -10,6 +10,8 @@ import TryInPlayground from '../../components/cq/TryInPlayground.vue'
 
 `[CQ:markdown]` 用于发送 Markdown 卡片消息（`msg_type=2`）。`data` 承载整段 JSON 载荷，常见字段是 `content` / `custom_template_id` / `keyboard`。
 
+> `keyboard` 字段的按钮权限在私聊（C2C）下会被自动归一为 `permission.type=2`，群聊则保留原值——详见 [CQ:keyboard](./扩展cq码-cq-keyboard.md) 的「C2C 私聊的权限归一化」，本页不重复展开。
+
 ## 语法
 
 ```text
