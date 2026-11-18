@@ -89,7 +89,7 @@ M4 验收仍在进行，链路补齐按波次继续推进（`docs/rust-m0.md:35-
 | R4m | 2026-11-13 | P56 出站 URL 转换与二维码管线：`protocol/src/xurls.rs`（xurls v1.1.0 Relaxed 移植，Go 金样 corpus 逐 span 断言）→ `media/src/qr.rs`（容错级 = Go `qrcode.High`、无静区、Go PNG 尺寸语义，矩阵级金样一致）→ runtime 出站 URL 管线；另含 SSRF 防护补齐 |
 | R4n | 2026-11-14 | P59 裸媒体码语义修复（触及外部 JSON 硬约束）：`[CQ:image]`/`[CQ:video]`/`[CQ:file]`/`[CQ:record]`/`[CQ:voice]` 不带 `file`/`url` 时原位保留字面，不再向上游发出 `"media":{"file_info":""}` |
 
-**当前测试基线**：合并树 `cargo test --workspace` **45 suites / 1476 passed / 0 failed**（2026-11-18 全量门禁，含 P83 三码真执行 / P86d-2 回执 / member_list 翻页 / db-location；见主仓库 `docs/rust-handover.md:34`）。历史数字（R4n 轮 43 suites / 1359、换机文档 `docs/rust-migrate.md:161` 的 1356）各对当时成立，计数随用例增删浮动——引用时以自己刚跑出的 `test result:` 行为准。
+**当前测试基线**：合并树 `cargo test --workspace` **45 suites / 1478 passed / 1 ignored / 0 failed**（2026-11-18 全量门禁，HEAD `59510ca`，含 P83 三码真执行 / P86d-2 回执 / member_list 翻页 / db-location；见主仓库 `docs/rust-handover.md:34`）。历史数字（R4n 轮 43 suites / 1359、换机文档 `docs/rust-migrate.md:161` 的 1356、清理前记录的 1476）各对当时成立，计数随用例增删浮动——引用时以自己刚跑出的 `test result:` 行为准。
 
 ## 与 Go 版的能力差异
 
