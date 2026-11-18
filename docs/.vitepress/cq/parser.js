@@ -70,7 +70,7 @@
  *       主仓 handlers/cqparse/tokenize.go:26-29、Refactor crates/.../cqcode.rs:228-234
  *
  * 五、码名白名单（known 字段来源）
- *   - Refactor crates/gensokyo-protocol/src/cqcode.rs:675-855 `CODES` 码表 26 个码名；
+ *   - Refactor crates/gensokyo-protocol/src/cqcode.rs:693-922 `CODES` 码表 26 个码名；
  *     表外码名（如 `cardboard`）按未知码处理：仍成段、known=false、后端原样透传，
  *     主仓 handlers/cq_parse_regression_test.go:249-258（N-A5）为证。
  *   - kind 分类沿用后端码表分发类别映射：
@@ -104,7 +104,7 @@ function isNameChar(code) {
   )
 }
 
-// CQ 码表（Rust CODES 码名，顺序与 cqcode.rs:676-855 一致）。
+// CQ 码表（Rust CODES 码名，顺序与 cqcode.rs:693-922 一致）。
 export const CQ_CODE_NAMES = Object.freeze([
   'text',
   'at',

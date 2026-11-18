@@ -16,13 +16,17 @@ Gensokyo-NewQQ 正在主仓库的 `Refactor` 分支上，用 Rust 逐步重写�
 | 树 | 语言 | 位置 | 构建入口 | 状态 |
 |----|------|------|----------|------|
 | Go 主链 | Go | legacy 目录 + `internal/` + `adapter/` | `go build` / `.\build.ps1`（`main` 分支上是完整 Go 构建链） | 生产主线，按 `arch_mode` 逐请求切换 |
-| Rust workspace | Rust | `crates/` + `xtask/` | `cargo xtask build`（`Refactor` 树的 `build.ps1` 只是把它包装成 Go 命名参数） | 独立二进制 `gensokyo`，重写进行中 |
+| Rust workspace | Rust | `crates/` + `xtask/` | `cargo xtask build`（`Refactor` 树自 2026-11-18 起已无 `build.ps1`，这是唯一入口） | 独立二进制 `gensokyo`，重写进行中 |
 
 > [!WARNING]
-> 「`build.ps1` 已退化为薄包装」只描述 **`Refactor` 分支那一棵树**（`build.ps1:1-3` 把 Go 命名参数翻译成 Rust 三元组后转发给 xtask，不再调 Go 工具链）。`main` 分支的 `build.ps1` 仍是完整 Go 链：设 `GOPROXY` / `CGO_ENABLED=0`（`build.ps1:28-30`）、`-NoWebUI` 走 `-tags=small`（`:94`）——两棵树的同名脚本语义不同，别把 Rust 侧的口径套到 Go 版构建文档上（见[编译构建](/guide/build)）。
+> **`Refactor` 分支自 2026-11-18 起不再包含 `build.ps1`**：该分支的 Go 遗留源码树（`handlers/` / `Processor/` / `botgo/` / `go-silk/` 等）、`go.mod` / `go.sum` 与 Go 专用 CI 一并移除，Rust 构建只剩 `cargo xtask build`。`main` 分支的 `build.ps1` 仍是完整 Go 链：设 `GOPROXY` / `CGO_ENABLED=0`（`build.ps1:28-30`）、`-NoWebUI` 走 `-tags=small`（`:94`）——同名脚本只存在于 Go 主线，别把 Rust 侧的口径套到 Go 版构建文档上（见[编译构建](/guide/build)）。
 
 > [!WARNING]
-> `arch_mode` 是 **Go 主链内部**在 legacy 目录与 `internal/` + `adapter/` 分层之间切换的开关，Rust 二进制不在其切换范围内。两者互不混用：Rust 版是独立的可执行程序，M4 验收前 Go 代码不删除（主仓库 M0 裁决 1）。
+> `arch_mode` 是 **Go 主链内部**在 legacy 目录与 `internal/` + `adapter/` 分层之间切换的开关，Rust 二进制不在其切换范围内。两者互不混用：Rust 版是独立的可执行程序；Go 源码现在只保留在 `main` 分支（`Refactor` 分支已移除，`main` 侧继续作为 parity 参照与回退路径）。
+
+## 发布状态与命名
+
+Rust 版**尚未发布**：`Refactor` 分支上没有 `Release016Rust` tag，GitHub 也没有对应 Release。发布名定为 **`Release 016 Rust`**（Rust 重构分支的首个 Release，见主仓库 `docs/rust-handover.md:29`），以免与 Go 主线的 `Release016` 混淆；后者同样未封版，见 [Release 更新](/release/)。对齐现状与登记差异见上文「与 Go 版的能力差异」与[差异清单](/rust/actions)，不要据此认为 Rust 版已可替代 Go 主线。
 
 ## Go 主链的 `arch_mode` 三模式
 
@@ -85,7 +89,7 @@ M4 验收仍在进行，链路补齐按波次继续推进（`docs/rust-m0.md:35-
 | R4m | 2026-11-13 | P56 出站 URL 转换与二维码管线：`protocol/src/xurls.rs`（xurls v1.1.0 Relaxed 移植，Go 金样 corpus 逐 span 断言）→ `media/src/qr.rs`（容错级 = Go `qrcode.High`、无静区、Go PNG 尺寸语义，矩阵级金样一致）→ runtime 出站 URL 管线；另含 SSRF 防护补齐 |
 | R4n | 2026-11-14 | P59 裸媒体码语义修复（触及外部 JSON 硬约束）：`[CQ:image]`/`[CQ:video]`/`[CQ:file]`/`[CQ:record]`/`[CQ:voice]` 不带 `file`/`url` 时原位保留字面，不再向上游发出 `"media":{"file_info":""}` |
 
-**当前测试基线**：合并树 `cargo test --workspace` **43 suites / 1359 passed / 0 failed**（`docs/rust-m0.md:74`，R4n 轮记录；换机文档 `docs/rust-migrate.md:161` 记的是该轮之前的 1356，差 3 例为 protocol 裸码字面 2 例 + runtime 生产入口 `MessageOut::from_content` 外部形态 1 例）。
+**当前测试基线**：合并树 `cargo test --workspace` **45 suites / 1476 passed / 0 failed**（2026-11-18 全量门禁，含 P83 三码真执行 / P86d-2 回执 / member_list 翻页 / db-location；见主仓库 `docs/rust-handover.md:34`）。历史数字（R4n 轮 43 suites / 1359、换机文档 `docs/rust-migrate.md:161` 的 1356）各对当时成立，计数随用例增删浮动——引用时以自己刚跑出的 `test result:` 行为准。
 
 ## 与 Go 版的能力差异
 

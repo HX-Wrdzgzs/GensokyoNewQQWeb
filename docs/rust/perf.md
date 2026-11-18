@@ -72,7 +72,7 @@
 | 手段 | 当前状态 | 原因 / 约束 |
 |------|----------|-------------|
 | **PGO** | **本机（`x86_64-pc-windows-gnu`）不可用** | 该 rustc 发行版**不带 profiler runtime**，插桩构建直接 `error[E0463]: can't find crate for 'profiler_builtins'`（连 `cfg-if` 这类依赖都编不过），拿不到 PGO 前后数字；本机也未装 `llvm-tools-preview`（merge 步骤缺工具）。`cargo xtask pgo` 在这两种情况下都给可操作提示，不会静默跳过或伪造数字 |
-| PGO（Linux CI） | 可行，但**尚未接入发布链** | `x86_64-unknown-linux-gnu` + `rustup component add llvm-tools-preview` 可跑完整流水线（`cargo xtask pgo --iters 20000`，报告 `target/pgo/pgo-report.md`）；但 `build.ps1` / `xtask build` 目前不调用它，**发布物仍是 plain release + UPX** |
+| PGO（Linux CI） | 可行，但**尚未接入发布链** | `x86_64-unknown-linux-gnu` + `rustup component add llvm-tools-preview` 可跑完整流水线（`cargo xtask pgo --iters 20000`，报告 `target/pgo/pgo-report.md`）；但 `cargo xtask build` 目前不调用它，**发布物仍是 plain release + UPX** |
 | **BOLT** | **仅 Linux，且不进流水线** | 需要 `perf record` 与 `llvm-bolt`（还要求 `perf_event_paranoid` 允许采样），Windows 没有可用实现与等价采样后端。前置：`RUSTFLAGS="-C debuginfo=1 -C force-frame-pointers=yes"` 构建且临时**不** `strip = "symbols"`；预估 QPS +5–15%、P99 略降，体积 +5–10%，与 PGO 互补（PGO 改代码生成，BOLT 改布局） |
 | **UPX** | **保留**，构建链默认步骤 | `cargo xtask build` 复制产物后压缩；PATH 无 `upx` 只提示并跳过，不算构建失败（`-NoUPX` / `--no-upx` 可显式关闭） |
 | Windows PGO 出路 | 换 msvc 宿主，或等 rustc 给 gnu 宿主补 profiler runtime | 本机缺 `link.exe`，msvc 宿主口径见[构建与验证](/rust/build)的工具链告警 |

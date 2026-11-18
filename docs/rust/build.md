@@ -3,7 +3,7 @@
 Rust 工作区的构建入口只有一个：`cargo xtask build`（`.cargo/config.toml` 里的别名，等价于 `cargo run -p xtask -- build`）。
 
 > [!IMPORTANT]
-> 「`build.ps1` 已退化为薄包装」这一句**只适用于主仓库的 `Refactor` 分支**（Rust 工作区所在的那棵树）：那里的 `build.ps1:1-3` 只做「Go 命名参数 → Rust 三元组」的翻译后转发给 xtask，不再调用 Go 工具链。`main` 分支（Go 生产主线）的 `build.ps1` 仍是完整的 Go 构建链，口径见[编译构建](/guide/build)。
+> **`Refactor` 分支自 2026-11-18 起已无 `build.ps1`**：该分支的 Go 遗留源码树、`go.mod` / `go.sum` 与 Go 专用 CI 已一并移除，构建入口只有本节列的 `cargo xtask build`。`main` 分支（Go 生产主线）的 `build.ps1` 仍是完整的 Go 构建链，口径见[编译构建](/guide/build)。
 
 ## 工具链
 

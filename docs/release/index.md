@@ -2,6 +2,9 @@
 
 本页按版本倒序汇总 Gensokyo-NewQQ 的发布内容。摘要提炼自主仓库的 `release_log/CHANGELOG_vNNN.md`，完整变更、文件清单与提交记录以上游 changelog 为准。
 
+> [!NOTE]
+> **Rust 重构版尚未发布**：它在主仓库 `Refactor` 分支上推进，发布名为 `Release 016 Rust`，目前既无 `Release016Rust` tag 也无对应 GitHub Release，因此不与下表的 Go 主线版本序列混排。构建入口与源码见 [Rust 重构概览](/rust/overview)。
+
 | 版本 | 主题 |
 |------|------|
 | [Release016](#release016) | **未封版 · 在飞**——分层架构接入主链 · 素材管理 / @全员 / 单聊卡片 · CQ 最大兼容 |

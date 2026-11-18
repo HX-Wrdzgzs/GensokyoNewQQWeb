@@ -135,7 +135,7 @@ import TryInPlayground from '../../components/cq/TryInPlayground.vue'
 ### C2C 私聊的权限归一化
 
 > [!TIP] 私聊发送时，按钮的 permission.type 会被自动改成 2（所有人）
-> QQ 官方 C2C 场景只接受 `type=2`：写成 `0`（指定用户，含空名单）、`1`（仅管理者）、`3`（身份组）时，按钮点击会被服务端拒绝。单聊只有对话双方，任何权限限制都等于「谁都点不了」，因此 Gensokyo 在**私聊发送路径**上把非 `2` 的取值统一归一为 `2`（`handlers/message_parser.go:2782-2799` 的 `NormalizeC2CKeyboardPermission`；调用点 `handlers/send_private_msg.go:516`、`:545`、`:642`、`handlers/outbound_bridge.go:976`、`:992`）。`specify_user_ids` / `specify_role_ids` 原样保留，不影响 C2C 下发。
+> QQ 官方 C2C 场景只接受 `type=2`：写成 `0`（指定用户，含空名单）、`1`（仅管理者）、`3`（身份组）时，按钮点击会被服务端拒绝。单聊只有对话双方，任何权限限制都等于「谁都点不了」，因此 Gensokyo 在**私聊发送路径**上把非 `2` 的取值统一归一为 `2`（`handlers/message_parser.go:2782-2799` 的 `NormalizeC2CKeyboardPermission`；调用点 `handlers/send_private_msg.go:517`、`:546`、`:643`、`handlers/outbound_bridge.go:977`、`:993`）。`specify_user_ids` / `specify_role_ids` 原样保留，不影响 C2C 下发。
 >
 > **群聊不做归一**：`permission.type` 的限制在群聊是合法能力，插件写什么就发什么。
 
