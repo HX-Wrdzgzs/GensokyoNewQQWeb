@@ -45,7 +45,7 @@ go build -trimpath -ldflags="-s -w" -o gensokyo.exe .
 # 仅编译 Linux 平台
 .\build.ps1 -LinuxOnly
 
-# 无 WebUI 精简版（排除云存储 SDK / gRPC / 二维码，见下节）
+# 精简版（去 gRPC / 二维码 / 云存储 SDK；WebUI 本体保留，见下节）
 .\build.ps1 -NoWebUI
 
 # 跳过 UPX 压缩
@@ -86,7 +86,7 @@ CI（`.github/workflows/cross_compile.yml`）构建的是**九目标矩阵**：l
 | 模式 | 命令 | 功能差异 | 适用场景 |
 |---|---|---|---|
 | **完整版** | `go build .` 或 `.\build.ps1` | 完整云存储 + gRPC + 系统监控 + WebUI | 需要使用云图床或 Lotus 多进程模式 |
-| **精简版** | `.\build.ps1 -NoWebUI` | 移除 WebUI、gRPC、二维码、OSS 后端（阿里云 / 百度云 / 腾讯云） | 不需要云存储，追求最小体积 |
+| **精简版** | `.\build.ps1 -NoWebUI` | 去 gRPC、二维码生成、OSS 后端（阿里云 / 百度云 / 腾讯云）与 gopsutil 系统监控；**WebUI 本体保留**（`webui/api.go` 的 `//go:embed dist/*` 与 `/webui/*` 路由没有 build tag，仅 `handleSysInfo` 换成模拟数据） | 不需要云存储 / 远程 idmap，追求更小体积 |
 
 `-tags=small` 通过源码里的 `//go:build !small` / `//go:build small` 成对文件切换实现（例如 `silk/mp3_real.go` 与 `silk/mp3_stub.go`）。精简版下图片走本地存储（`channel_temp` 目录），监控面板返回模拟数据；需要完整功能时用 `go build .` 重新编译。
 
